@@ -384,6 +384,7 @@ export default function SoulDashboard() {
   const [showOverview, setShowOverview] = useState(false);
   const [showTactical, setShowTactical] = useState(false);
   const [showResonance, setShowResonance] = useState(false);
+  const [isWaking, setIsWaking] = useState(false);
 
   useEffect(() => {
     const savedHistory = localStorage.getItem('soulHistory');
@@ -405,10 +406,16 @@ export default function SoulDashboard() {
 
   const fetchData = async () => {
     setLoading(true);
+    setIsWaking(false);
+    const wakingTimer = setTimeout(() => setIsWaking(true), 3000);
     try {
       const result = await calculateForPartner(birthdayInput);
       setData({...result, name: userName});
-    } catch (error) { console.error("連線失敗", error); } finally { setLoading(false); }
+    } catch (error) { console.error("連線失敗", error); } finally {
+      clearTimeout(wakingTimer);
+      setLoading(false);
+      setIsWaking(false);
+    }
   };
 
   useEffect(() => { if (!showInputModal) fetchData(); }, [year, showInputModal]);
@@ -457,6 +464,23 @@ export default function SoulDashboard() {
         </div>
       </nav>
 
+      <AnimatePresence>
+        {isWaking && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="fixed top-16 left-0 w-full z-40 flex justify-center px-4 pt-2"
+          >
+            <div className="flex items-center gap-3 bg-slate-900/95 border border-amber-500/50 text-amber-300 text-sm px-5 py-2.5 rounded-full shadow-lg shadow-amber-900/20 backdrop-blur-sm">
+              <Activity size={14} className="animate-spin text-amber-400 shrink-0" />
+              <span>後端伺服器喚醒中，請稍候約 30～60 秒...</span>
+              <span className="text-amber-500/60 text-xs">（免費方案閒置會休眠）</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* 主畫面 */}
       <main className={`pt-24 pb-12 px-4 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 transition-opacity duration-1000 ${showInputModal ? 'opacity-0 filter blur-sm' : 'opacity-100 filter blur-0'}`}>
         {/* 左 */}
@@ -471,8 +495,16 @@ export default function SoulDashboard() {
           </div>
           <div className="h-64 w-full relative flex items-center justify-between">
             <p className="text-xs text-slate-500 absolute top-0 left-0 z-10">外在顯化光輪</p>
-            <div className="w-2/3 h-full relative flex items-center justify-center"><div className="absolute w-36 h-36 rounded-full border border-cyan-900/30 animate-spin-slow pointer-events-none"></div><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={data.solarWheel} cx="50%" cy="50%" innerRadius={50} outerRadius={100} paddingAngle={3} dataKey="angleValue" strokeWidth={2}>{data.solarWheel.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} stroke={entry.stroke} style={{ filter: `drop-shadow(0 0 ${entry.intensity === 'high' ? '10px' : '2px'} ${entry.fill})` }} />)}</Pie><RechartsTooltip content={<CustomTooltip />} /></PieChart></ResponsiveContainer><div className="absolute text-center pointer-events-none"><div className="text-[10px] text-cyan-500/50">陽性</div><div className="text-[8px] text-slate-600">核心</div></div></div>
-            <div className="w-1/3 flex items-center"><ul className="space-y-2 text-[11px] text-slate-300">{data.solarWheel.map((item, i) => (<li key={i} className="flex items-center justify-between"><div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full" style={{backgroundColor: item.fill, boxShadow: `0 0 5px ${item.fill}`}} title={`${item.name} - 能量分數: ${item.score}`}></span>{item.name}</div>{item.hasFlowBuff && (<motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-orange-500 flex items-center gap-1" title="流年加持中 - 該領域受到流年能量加持"><Flame size={12} className="fill-orange-500 animate-pulse" /></motion.div>)}</li>))}</ul></div>
+            <div className="w-2/3 h-full relative flex items-center justify-center"><div className="absolute w-36 h-36 rounded-full border border-cyan-900/30 animate-spin-slow pointer-events-none"></div><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={data.solarWheel} cx="50%" cy="50%" innerRadius={50} outerRadius={100} paddingAngle={3} dataKey="angleValue" strokeWidth={2}>{data.solarWheel.map((entry, index) => {
+                    const fill  = entry.hasFlowBuff ? '#22d3ee' : entry.fill;
+                    const stroke = entry.hasFlowBuff ? '#e0f2fe' : entry.stroke;
+                    const glow  = entry.hasFlowBuff
+                      ? 'drop-shadow(0 0 18px #22d3ee) drop-shadow(0 0 8px rgba(255,255,255,0.6))'
+                      : `drop-shadow(0 0 ${entry.intensity === 'high' ? '6px' : '1px'} ${entry.fill})`;
+                    const opacity = entry.hasFlowBuff ? 1 : (entry.intensity === 'high' ? 0.85 : entry.intensity === 'mid' ? 0.55 : 0.3);
+                    return <Cell key={`cell-${index}`} fill={fill} stroke={stroke} opacity={opacity} style={{ filter: glow, transition: 'all 0.8s ease' }} />;
+                  })}</Pie><RechartsTooltip content={<CustomTooltip />} /></PieChart></ResponsiveContainer><div className="absolute text-center pointer-events-none"><div className="text-[10px] text-cyan-500/50">陽性</div><div className="text-[8px] text-slate-600">核心</div></div></div>
+            <div className="w-1/3 flex items-center"><ul className="space-y-2 text-[11px] text-slate-300">{data.solarWheel.map((item, i) => (<li key={i} className="flex items-center justify-between"><div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full transition-all duration-700" style={{backgroundColor: item.hasFlowBuff ? '#22d3ee' : item.fill, boxShadow: item.hasFlowBuff ? '0 0 8px #22d3ee, 0 0 3px #fff' : `0 0 3px ${item.fill}`, opacity: item.hasFlowBuff ? 1 : (item.intensity === 'high' ? 0.85 : item.intensity === 'mid' ? 0.55 : 0.3)}} title={`${item.name} - 能量分數: ${item.score}`}></span>{item.name}</div>{item.hasFlowBuff && (<motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-orange-500 flex items-center gap-1" title="流年加持中 - 該領域受到流年能量加持"><Flame size={12} className="fill-orange-500 animate-pulse" /></motion.div>)}</li>))}</ul></div>
           </div>
         </motion.div>
 
@@ -514,7 +546,32 @@ export default function SoulDashboard() {
           </div>
           <div className="h-64 w-full -ml-4 flex flex-col justify-end">
              <p className="text-xs text-slate-500 mb-0 pl-4">內在靈魂矩陣</p>
-             <ResponsiveContainer width="100%" height="100%"><RadarChart cx="50%" cy="50%" outerRadius="70%" data={data.lunarRadar}><PolarGrid stroke="#334155" /><PolarAngleAxis dataKey="subject" tick={{ fill: '#c084fc', fontSize: 11, fontWeight: 'bold' }} /><PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} /><Radar name="Personality" dataKey="A" stroke="#a855f7" strokeWidth={2} fill="#a855f7" fillOpacity={0.4} /><RechartsTooltip content={<CustomTooltip />} /></RadarChart></ResponsiveContainer>
+             {(() => {
+               const radarData = data.lunarRadar.map(item => ({
+                 ...item,
+                 flowLayer: item.hasFlowBuff ? Math.min((item.A || 0) + 28, 100) : 0,
+               }));
+               const CustomTick = ({ payload, x, y, textAnchor }) => {
+                 const item = radarData.find(d => d.subject === payload?.value);
+                 return (
+                   <text x={x} y={y} textAnchor={textAnchor} fill={item?.hasFlowBuff ? '#fb923c' : '#c084fc'} fontSize={11} fontWeight="bold" style={{ transition: 'fill 0.8s ease' }}>
+                     {payload?.value}
+                   </text>
+                 );
+               };
+               return (
+                 <ResponsiveContainer width="100%" height="100%">
+                   <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+                     <PolarGrid stroke="#334155" />
+                     <PolarAngleAxis dataKey="subject" tick={<CustomTick />} />
+                     <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                     <Radar name="基礎" dataKey="A" stroke="#a855f7" strokeWidth={2} fill="#a855f7" fillOpacity={0.3} />
+                     <Radar name="流年加持" dataKey="flowLayer" stroke="#f97316" strokeWidth={1.5} strokeDasharray="5 3" fill="#f97316" fillOpacity={0.25} />
+                     <RechartsTooltip content={<CustomTooltip />} />
+                   </RadarChart>
+                 </ResponsiveContainer>
+               );
+             })()}
           </div>
         </motion.div>
 
