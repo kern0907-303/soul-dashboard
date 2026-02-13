@@ -4,7 +4,7 @@ import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip
 } from 'recharts';
-// 🔥 注意：這裡已經移除了 'Heart'，如果瀏覽器還顯示愛心，代表它讀取的絕對不是這份檔案！
+// 🔥 注意:這裡已經移除了 'Heart'，如果瀏覽器還顯示愛心，代表它讀取的絕對不是這份檔案！
 import { 
   Sun, Moon, Activity, ChevronLeft, ChevronRight, 
   LayoutDashboard, Brain, Waves, Atom, Settings, ScanFace, User, Save, Grid, Flame, X, Database, MapPin, GitCommit, Cpu, Zap, History, Trash2, Camera, Calendar, Users, Compass
@@ -509,13 +509,12 @@ export default function SoulDashboard() {
             <div className="flex items-center gap-3 mb-6 text-purple-400"><Moon size={24} title="陰性能量 - 內在潛影" /><h2 className="text-lg font-bold tracking-wide">陰性・潛影 (內在)</h2></div>
             <div className="bg-[#0A121E] p-4 rounded-xl border border-slate-800 relative overflow-hidden mb-4">
                <div className="flex justify-between items-center mb-2"><p className="text-slate-400 text-xs">內在情感潮汐</p><div className="flex items-center gap-1.5 bg-purple-950/50 px-2 py-1 rounded-full border border-purple-500/30"><Atom size={14} className="text-purple-400 animate-pulse" title="流年能量等級" /><span className="text-sm font-bold text-purple-300">{data.flowLunarLv}</span></div></div>
-              <div className="flex justify-between items-end"><div className="flex items-center"><span className="text-4xl font-bold text-white">{formatRawNum(data.lunar)}</span><FlowTriangle flowValue={data.lunar} mainValue={data.mainLunar} colorClass="purple" scale={0.75} /></div><span className="text-purple-400 text-xs font-bold tracking-widest px-2 py-1 bg-purple-950/30 rounded border border-purple-500/30 whitespace-nowrap">{data.lunarKw}</span></div>
+              <div className="flex justify-between items-end"><div className="flex items-center"><span className="text-3xl font-bold text-white">{formatRawNum(data.lunar)}</span><FlowTriangle flowValue={data.lunar} mainValue={data.mainLunar} colorClass="purple" scale={0.75} /></div><span className="text-purple-400 text-xs font-bold tracking-widest px-2 py-1 bg-purple-950/30 rounded border border-purple-500/30 whitespace-nowrap">{data.lunarKw}</span></div>
             </div>
           </div>
-          <div className="h-64 w-full relative flex items-center justify-between">
-             <p className="text-xs text-slate-500 absolute top-0 left-0 z-10">內在靈魂矩陣</p>
-             <div className="w-2/3 h-full -ml-4 flex flex-col justify-end"><ResponsiveContainer width="100%" height="100%"><RadarChart cx="50%" cy="50%" outerRadius="70%" data={data.lunarRadar}><PolarGrid stroke="#334155" /><PolarAngleAxis dataKey="subject" tick={{ fill: '#c084fc', fontSize: 11, fontWeight: 'bold' }} /><PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} /><Radar name="Personality" dataKey="A" stroke="#a855f7" strokeWidth={2} fill="#a855f7" fillOpacity={0.4} /><RechartsTooltip content={<CustomTooltip />} /></RadarChart></ResponsiveContainer></div>
-             <div className="w-1/3 flex items-center"><ul className="space-y-2 text-[11px] text-slate-300">{data.lunarRadar.map((item, i) => (<li key={i} className="flex items-center justify-between"><div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-purple-500" style={{boxShadow: '0 0 5px #a855f7'}} title={`${item.subject} - 能量分數: ${item.A}`}></span><span className="truncate">{item.subject}</span></div>{item.hasFlowBuff && (<motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-orange-500 flex items-center gap-1" title="流年加持中 - 該領域受到流年能量加持"><Flame size={12} className="fill-orange-500 animate-pulse" /></motion.div>)}</li>))}</ul></div>
+          <div className="h-64 w-full -ml-4 flex flex-col justify-end">
+             <p className="text-xs text-slate-500 mb-0 pl-4">內在靈魂矩陣</p>
+             <ResponsiveContainer width="100%" height="100%"><RadarChart cx="50%" cy="50%" outerRadius="70%" data={data.lunarRadar}><PolarGrid stroke="#334155" /><PolarAngleAxis dataKey="subject" tick={{ fill: '#c084fc', fontSize: 11, fontWeight: 'bold' }} /><PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} /><Radar name="Personality" dataKey="A" stroke="#a855f7" strokeWidth={2} fill="#a855f7" fillOpacity={0.4} /><RechartsTooltip content={<CustomTooltip />} /></RadarChart></ResponsiveContainer>
           </div>
         </motion.div>
 
