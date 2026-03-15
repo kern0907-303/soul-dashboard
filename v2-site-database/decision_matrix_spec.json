@@ -1,0 +1,57 @@
+{
+  "version": "1.0.0",
+  "panel_id": "decision_matrix",
+  "purpose": "做決策優化，不做吉凶判斷。",
+  "formula": "decision_optimization = time_support_score * relationship_match_score * self_maturity_score",
+  "modes": [
+    {
+      "id": "binary_choice",
+      "name": "模式一：二選一",
+      "use_cases": ["職涯 A/B", "合作 A/B", "關係 A/B", "搬遷 A/B"],
+      "fields": [
+        "option_a",
+        "option_b",
+        "decision_type",
+        "time_context",
+        "relationship_context",
+        "self_readiness",
+        "recommendation",
+        "risk_note"
+      ]
+    },
+    {
+      "id": "ranked_multi_choice",
+      "name": "模式二：多選一排序",
+      "use_cases": ["A/B/C 合作對象", "多職涯選項", "多方案比較"],
+      "fields": [
+        "option_id",
+        "option_name",
+        "option_type",
+        "fit_score",
+        "time_support_score",
+        "relationship_match_score",
+        "energy_cost_score",
+        "long_term_alignment_score",
+        "summary",
+        "recommendation"
+      ]
+    }
+  ],
+  "decision_type_enum": [
+    "career",
+    "relationship",
+    "collaboration",
+    "business",
+    "learning",
+    "relocation",
+    "lifestyle",
+    "timing",
+    "custom"
+  ],
+  "recommendation_enum": [
+    "適合立即行動",
+    "適合觀察後再行動",
+    "適合小規模測試",
+    "目前不建議投入"
+  ]
+}

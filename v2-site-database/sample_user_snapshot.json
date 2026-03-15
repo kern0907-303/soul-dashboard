@@ -1,0 +1,26 @@
+{
+  "user_id": "demo-user",
+  "generated_at": "2026-03-08T00:00:00+08:00",
+  "source_payload": {
+    "mainSolar": "+29/11/2",
+    "mainLunar": "-25/7",
+    "flowSolarLv": "5",
+    "flowLunarLv": "4",
+    "solarMonthNum": 8,
+    "lunarMonthNum": 6,
+    "solarDayNum": 3,
+    "lunarDayNum": 2
+  },
+  "panel_outputs": {
+    "current_operation_dimension": {
+      "summary": "目前以建立與推進型能量為主。",
+      "interpretation": "適合聚焦一個主要目標並持續推進，避免多線分心。",
+      "action_prompt": "今天先收斂一件最重要任務，設定 90 分鐘深度執行。"
+    },
+    "inner_drive": {
+      "summary": "核心驅動來自成長與價值實現。",
+      "interpretation": "你在看見長期意義時動力最穩定。",
+      "action_prompt": "把本週任務與長期主軸做一次對齊檢查。"
+    }
+  }
+}

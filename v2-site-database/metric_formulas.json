@@ -1,0 +1,108 @@
+{
+  "version": "2.1.0",
+  "source_api": ["/calculate", "/calculate_lifecycle"],
+  "scoring_policy": {
+    "default_range": "0-100",
+    "risk_level_bands": {
+      "low": [0, 33],
+      "medium": [34, 66],
+      "high": [67, 100]
+    }
+  },
+  "tone_policy": {
+    "coach_ratio": 0.6,
+    "companion_ratio": 0.4,
+    "block_styles": {
+      "summary": "清楚、簡潔、直接",
+      "interpretation": "有理解感、不批判、有深度",
+      "action_prompt": "具體、可執行、穩定、有鼓勵感"
+    },
+    "forbidden_styles": [
+      "神諭式",
+      "命定式",
+      "批判式",
+      "過度心靈雞湯式",
+      "太玄太虛",
+      "過度醫療化",
+      "占卜化語氣"
+    ]
+  },
+  "derived_metrics": [
+    {
+      "id": "core_personality_profile",
+      "for_panel": "core_personality",
+      "formula": "主命數=mainSolarNum; 先天數=matrixData.solar.counts 分布; 後天數=flowSolarLv 與 flowLunarLv 交集判讀。",
+      "outputs": ["core_module", "secondary_module", "thinking_tendency", "action_tendency"]
+    },
+    {
+      "id": "current_operation_dimension_index",
+      "for_panel": "current_operation_dimension",
+      "formula": "依 solarWheel 前二高分 + flowSolarLv/solarMonthNum/solarDayNum 判定主維度與次維度，再由波動幅度估成熟度。",
+      "outputs": ["dominant_dimension", "secondary_dimension", "stress_response", "maturity_level", "switch_hint"]
+    },
+    {
+      "id": "inner_drive_map",
+      "for_panel": "inner_drive",
+      "formula": "0.35*心靈成長 + 0.25*核心信念 + 0.2*頻率共振 + 0.2*主命數共鳴。",
+      "outputs": ["attention_direction", "passion_source", "flow_scene", "inner_desire", "long_term_theme"]
+    },
+    {
+      "id": "expression_consistency_score",
+      "for_panel": "expression_consistency",
+      "formula": "consistency=100-abs(社交人際-情感連結)-0.5*abs(家庭關係-情緒容納)，再由 matrix 缺數補正。",
+      "outputs": ["inner_state", "outer_expression", "received_impression", "misunderstanding_point", "consistency_score", "gap_alert"]
+    },
+    {
+      "id": "current_needs_priority",
+      "for_panel": "current_needs",
+      "formula": "取 solarWheel+lunarRadar 低分項作需求池，再依流月/流日節奏排序短中長期需求。",
+      "outputs": ["core_need_now", "short_term_need", "long_term_need", "current_gap", "avoid_now", "priority_order"]
+    },
+    {
+      "id": "bottleneck_diagnosis_engine",
+      "for_panel": "bottleneck_diagnosis",
+      "formula": "依矩陣缺數、弱線、重複數與一致性落差，分類人格/關係/價值/時間/行動卡點。",
+      "outputs": ["main_block", "secondary_block", "source", "block_type", "release_direction", "adjustment_priority"]
+    },
+    {
+      "id": "relationship_pattern_engine",
+      "for_panel": "relationship_pattern",
+      "formula": "用社交人際+家庭關係+情感連結+頻率共振判讀關係風格與重複模式。",
+      "outputs": ["style", "attraction_type", "conflict_pattern", "repeated_theme", "interaction_strength", "relation_hint"]
+    },
+    {
+      "id": "relationship_dynamics_engine",
+      "for_panel": "relationship_dynamics",
+      "formula": "關係動能=感情數*親密程度校正*互補度，分類守護型/強烈轉化型/功能合作型/輕連結型。",
+      "outputs": ["affection_number", "relation_type", "intimacy_level", "interaction_advantage", "interaction_risk", "strategy"]
+    },
+    {
+      "id": "time_rhythm_signal",
+      "for_panel": "time_rhythm",
+      "formula": "以 flowSolarLv/flowLunarLv/solarMonthNum/lunarMonthNum/solarDayNum/lunarDayNum 輸出衝守修收。",
+      "outputs": ["stage_number", "annual_flow", "monthly_flow", "daily_flow", "rhythm_state", "year_theme", "month_hint", "today_hint"]
+    },
+    {
+      "id": "mission_direction_signal",
+      "for_panel": "mission_direction",
+      "formula": "主命路徑 + 活躍線條 + 高分向度組合成主軸句，並列偏離風險。",
+      "outputs": ["one_line_mission", "core_contribution", "shine_domain", "mission_keywords", "off_track_warning"]
+    },
+    {
+      "id": "future_blueprint_planner",
+      "for_panel": "future_blueprint",
+      "formula": "lifecycle 未來 3 年 + 節奏相位 + 卡點風險，生成一年方向與三階段路徑。",
+      "outputs": ["ideal_life_shape", "one_year_direction", "three_stage_path", "near_term_priority", "long_term_vision", "risk_note"]
+    },
+    {
+      "id": "decision_matrix_optimizer",
+      "for_panel": "decision_matrix",
+      "formula": "decision_optimization = time_support_score * relationship_match_score * self_maturity_score; 最終 fit_score 做 0-100 正規化。",
+      "outputs": ["fit_score", "time_support_score", "relationship_match_score", "energy_cost_score", "long_term_alignment_score", "recommendation", "risk_note"]
+    }
+  ],
+  "action_prompt_format": {
+    "type": "3-step",
+    "steps": ["今天先做一個最小行動", "本週完成一個可驗證成果", "本月建立一個可重複流程"]
+  }
+}

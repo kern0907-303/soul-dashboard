@@ -1,0 +1,75 @@
+{
+  "version": "1.0.0",
+  "style_positioning": "明亮理性 × 溫暖秩序 × 高級靈魂感",
+  "avoid_styles": ["深色科技監控風", "神秘占卜風", "過度療癒手帳風", "冰冷醫療後台風"],
+  "colors": {
+    "background": {
+      "primary": "#F8F6F2",
+      "secondary": "#FDFCF9"
+    },
+    "card": {
+      "primary": "#FFFFFF",
+      "secondary": "#FAF8F4"
+    },
+    "brand": {
+      "primary": "#5C6F91",
+      "secondary": "#C8A96B"
+    },
+    "text": {
+      "primary": "#2F3640",
+      "secondary": "#6B7280"
+    },
+    "border": {
+      "default": "#E7E1D8",
+      "divider": "#EFEAE2"
+    },
+    "functional": {
+      "support": "#7BAA8B",
+      "transform": "#D8A35D",
+      "risk": "#C97C6D",
+      "neutral": "#7C92B8"
+    },
+    "section_tag_bg": {
+      "who_am_i": "#EEF2F8",
+      "what_fits_me": "#EEF6F0",
+      "where_i_am_stuck": "#FAF3E8",
+      "where_i_should_go": "#F6F2EA"
+    }
+  },
+  "typography": {
+    "zh_title": "Noto Serif TC",
+    "zh_body": "Noto Sans TC",
+    "en_ui": "Inter"
+  },
+  "components": {
+    "card": {
+      "radius": "16-20px",
+      "border": "1px",
+      "shadow": "very_light",
+      "padding": ">=24px"
+    },
+    "button": {
+      "primary": {
+        "bg": "#5C6F91",
+        "text": "#FFFFFF"
+      },
+      "secondary": {
+        "bg": "#F3EFE8",
+        "text": "#5C6F91",
+        "border": "#D9D3C8"
+      }
+    },
+    "tag": {
+      "style": "light_background",
+      "avoid": "high_saturation_solid"
+    }
+  },
+  "charts": {
+    "radar": ["人格", "天賦", "角色適配"],
+    "horizontal_bar": ["價值排序", "需求強度"],
+    "donut": ["運作維度比例"],
+    "timeline": ["流年", "階段數"],
+    "matrix_card": ["決策矩陣", "關係動能"],
+    "principles": ["不要高飽和", "不要黑底", "不要過多網格線", "文字判讀比圖更重要"]
+  }
+}

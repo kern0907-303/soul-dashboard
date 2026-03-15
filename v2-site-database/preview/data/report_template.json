@@ -1,0 +1,51 @@
+{
+  "version": "2.1.0",
+  "report_name": "個人總結報告",
+  "required_sections": [
+    {
+      "id": "my_core_personality",
+      "title": "我的核心人格",
+      "fields": ["主命數", "核心模組", "思維傾向", "行動傾向"]
+    },
+    {
+      "id": "my_strengths_and_shine",
+      "title": "我的優勢與發光點",
+      "fields": ["三大優勢", "最適合的角色", "最容易展現價值的場域"]
+    },
+    {
+      "id": "my_inner_outer_gap",
+      "title": "我的內外落差",
+      "fields": ["內在驅動", "外在表達", "常見誤解"]
+    },
+    {
+      "id": "my_current_needs_and_blocks",
+      "title": "我的當前需求與卡點",
+      "fields": ["當下最重要需求", "主要恐懼", "核心卡點"]
+    },
+    {
+      "id": "my_relation_and_time_hint",
+      "title": "我的關係與時間提醒",
+      "fields": ["關係模式", "當前節奏", "決策注意事項"]
+    },
+    {
+      "id": "my_life_direction",
+      "title": "我的生命方向",
+      "fields": ["生命主軸一句話", "下一階段方向", "近期行動建議"]
+    }
+  ],
+  "panel_input_dependencies": [
+    "core_personality",
+    "talent_advantages",
+    "inner_drive",
+    "expression_consistency",
+    "current_needs",
+    "relationship_pattern",
+    "relationship_dynamics",
+    "fear_and_defense",
+    "bottleneck_diagnosis",
+    "time_rhythm",
+    "mission_direction",
+    "future_blueprint",
+    "decision_matrix"
+  ]
+}

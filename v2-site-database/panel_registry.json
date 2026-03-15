@@ -1,0 +1,283 @@
+{
+  "version": "2.1.0",
+  "product_positioning": {
+    "goal_path": ["self_identification", "relationship_understanding", "time_navigation", "decision_optimization"],
+    "statement": "這不是算命工具，而是人生導航系統。"
+  },
+  "course_framework": {
+    "duration_weeks": 6,
+    "topics_total": 12,
+    "closure_strategy": "第六週雙主題整合收攏，不再外加第七週。",
+    "core_outcome": "透過十二個主題，最後收斂成一個更清楚的自己，與一條更適合自己的路。"
+  },
+  "sections": [
+    {
+      "id": "who_am_i",
+      "name": "我是誰",
+      "tag_bg": "#EEF2F8",
+      "panels": [
+        "core_personality",
+        "talent_advantages",
+        "inner_drive",
+        "expression_consistency",
+        "current_operation_dimension"
+      ]
+    },
+    {
+      "id": "what_fits_me",
+      "name": "我適合什麼",
+      "tag_bg": "#EEF6F0",
+      "panels": ["value_ranking", "role_fit", "current_needs"]
+    },
+    {
+      "id": "where_i_am_stuck",
+      "name": "我卡在哪裡",
+      "tag_bg": "#FAF3E8",
+      "panels": ["relationship_pattern", "relationship_dynamics", "fear_and_defense", "bottleneck_diagnosis"]
+    },
+    {
+      "id": "where_i_should_go",
+      "name": "我要往哪裡走",
+      "tag_bg": "#F6F2EA",
+      "panels": ["time_rhythm", "mission_direction", "future_blueprint", "decision_matrix", "total_integration"]
+    }
+  ],
+  "development_batches": [
+    {
+      "batch": 1,
+      "name": "第一批優先開發",
+      "panels": [
+        "core_personality",
+        "current_operation_dimension",
+        "inner_drive",
+        "expression_consistency",
+        "current_needs",
+        "bottleneck_diagnosis"
+      ]
+    },
+    {
+      "batch": 2,
+      "name": "第二批優先開發",
+      "panels": [
+        "relationship_pattern",
+        "relationship_dynamics",
+        "time_rhythm",
+        "mission_direction",
+        "future_blueprint",
+        "decision_matrix",
+        "total_integration"
+      ]
+    },
+    {
+      "batch": 3,
+      "name": "第三批補強",
+      "panels": ["value_ranking", "role_fit", "fear_and_defense", "personal_summary_report"]
+    }
+  ],
+  "panels": [
+    {
+      "id": "core_personality",
+      "title": "核心人格面板",
+      "section_id": "who_am_i",
+      "batch": 1,
+      "priority": 1,
+      "core_question": "我是什麼樣的人？",
+      "fields": [
+        "主命數",
+        "先天數",
+        "後天數",
+        "核心模組",
+        "次核心模組",
+        "思維傾向",
+        "行動傾向",
+        "主要人格摘要"
+      ],
+      "output_blocks": ["summary", "interpretation", "action_prompt"]
+    },
+    {
+      "id": "talent_advantages",
+      "title": "天賦優勢面板",
+      "section_id": "who_am_i",
+      "batch": 3,
+      "priority": 13,
+      "core_question": "我的天賦與優勢是什麼？",
+      "fields": [
+        "自然優勢",
+        "已開發能力",
+        "潛在可開發能力",
+        "優勢應用場景",
+        "最容易被看見的亮點"
+      ],
+      "output_blocks": ["summary", "interpretation", "action_prompt"]
+    },
+    {
+      "id": "inner_drive",
+      "title": "內在驅動面板",
+      "section_id": "who_am_i",
+      "batch": 1,
+      "priority": 3,
+      "core_question": "我真正喜歡什麼？",
+      "fields": ["注意力指向", "熱情來源", "flow 場景", "內在渴望", "長期投入主題"],
+      "output_blocks": ["summary", "interpretation", "action_prompt"]
+    },
+    {
+      "id": "expression_consistency",
+      "title": "表達一致性面板",
+      "section_id": "who_am_i",
+      "batch": 1,
+      "priority": 4,
+      "core_question": "我的表達方式，真的等於我的內心嗎？",
+      "fields": ["內在感受", "外在表達", "他人接收印象", "常見誤解點", "內外一致度分數", "落差提醒"],
+      "output_blocks": ["summary", "interpretation", "action_prompt"]
+    },
+    {
+      "id": "current_operation_dimension",
+      "title": "當前運作維度面板",
+      "section_id": "who_am_i",
+      "batch": 1,
+      "priority": 2,
+      "core_question": "我目前在哪個運作維度？",
+      "dimension_levels": ["原始驅動層", "策略運作層", "整合發揮層", "意識穿透層"],
+      "fields": ["當前主維度", "次維度", "壓力下反應", "成熟度判讀", "維度轉換提醒"],
+      "output_blocks": ["summary", "interpretation", "action_prompt"]
+    },
+    {
+      "id": "value_ranking",
+      "title": "價值排序面板",
+      "section_id": "what_fits_me",
+      "batch": 3,
+      "priority": 14,
+      "core_question": "我最在意的是什麼？",
+      "fields": ["價值排序 top 5", "當前活出程度", "尚未活出的價值", "價值衝突點", "決策優先順序"],
+      "output_blocks": ["summary", "interpretation", "action_prompt"]
+    },
+    {
+      "id": "role_fit",
+      "title": "角色適配面板",
+      "section_id": "what_fits_me",
+      "batch": 3,
+      "priority": 15,
+      "core_question": "我適合什麼樣的角色與工作方式？",
+      "fields": [
+        "適合角色",
+        "適合工作型態",
+        "適合獨立/合作/領導/支持",
+        "高能量場景",
+        "高耗損場景",
+        "適合的發揮位置"
+      ],
+      "output_blocks": ["summary", "interpretation", "action_prompt"]
+    },
+    {
+      "id": "current_needs",
+      "title": "當下需求面板",
+      "section_id": "what_fits_me",
+      "batch": 1,
+      "priority": 5,
+      "core_question": "我現在真正想要的是什麼？",
+      "fields": ["當下核心需求", "短期需求", "長期需求", "現況落差", "當下不宜做的事", "當前優先順序"],
+      "output_blocks": ["summary", "interpretation", "action_prompt"]
+    },
+    {
+      "id": "relationship_pattern",
+      "title": "關係模式面板",
+      "section_id": "where_i_am_stuck",
+      "batch": 2,
+      "priority": 7,
+      "core_question": "我的人際與感情模式健康嗎？我總是在重複什麼？",
+      "fields": ["關係風格", "吸引類型", "衝突模式", "重複課題", "互動優勢", "關係提醒"],
+      "output_blocks": ["summary", "interpretation", "action_prompt"]
+    },
+    {
+      "id": "relationship_dynamics",
+      "title": "關係動能面板",
+      "section_id": "where_i_am_stuck",
+      "batch": 2,
+      "priority": 8,
+      "core_question": "這段關係是什麼性質的連線？",
+      "fields": ["感情數", "關係類型", "親密程度", "互動優勢", "互動風險", "建議關係策略"],
+      "relation_categories": ["守護型", "強烈轉化型", "功能合作型", "輕連結型"],
+      "output_blocks": ["summary", "interpretation", "action_prompt"]
+    },
+    {
+      "id": "fear_and_defense",
+      "title": "恐懼與防衛面板",
+      "section_id": "where_i_am_stuck",
+      "batch": 3,
+      "priority": 16,
+      "core_question": "我最害怕的是什麼？這個恐懼怎麼影響我的選擇？",
+      "fields": ["核心恐懼", "壓力反應", "防衛機制", "容易逃避的情境", "恐懼影響範圍", "恐懼觸發場景"],
+      "output_blocks": ["summary", "interpretation", "action_prompt"]
+    },
+    {
+      "id": "bottleneck_diagnosis",
+      "title": "卡點診斷面板",
+      "section_id": "where_i_am_stuck",
+      "batch": 1,
+      "priority": 6,
+      "core_question": "我一直跨不過去的人生卡點是什麼？",
+      "fields": ["主要卡點", "次要卡點", "卡點來源", "卡點類型", "鬆動方向", "調整優先順序"],
+      "bottleneck_types": ["人格卡點", "關係卡點", "價值卡點", "時間卡點", "行動卡點"],
+      "output_blocks": ["summary", "interpretation", "action_prompt"]
+    },
+    {
+      "id": "time_rhythm",
+      "title": "時間節奏面板",
+      "section_id": "where_i_should_go",
+      "batch": 2,
+      "priority": 9,
+      "core_question": "現在適合衝、守、修、還是收？",
+      "fields": ["階段數", "流年數", "流月數", "流日數", "當前節奏判讀", "年度主題", "當月提醒", "今日提醒"],
+      "output_blocks": ["summary", "interpretation", "action_prompt"]
+    },
+    {
+      "id": "mission_direction",
+      "title": "使命方向面板",
+      "section_id": "where_i_should_go",
+      "batch": 2,
+      "priority": 10,
+      "core_question": "我的人生目標或使命是什麼？",
+      "fields": ["生命主軸一句話", "核心貢獻方向", "發光領域", "使命關鍵詞", "不宜偏離主線"],
+      "output_blocks": ["summary", "interpretation", "action_prompt"]
+    },
+    {
+      "id": "future_blueprint",
+      "title": "未來藍圖面板",
+      "section_id": "where_i_should_go",
+      "batch": 2,
+      "priority": 11,
+      "core_question": "如果拿掉恐懼，我真正想活出什麼人生？",
+      "fields": ["理想生活樣貌", "一年方向", "三階段路徑", "近期行動優先", "長期願景", "風險提醒"],
+      "output_blocks": ["summary", "interpretation", "action_prompt"]
+    },
+    {
+      "id": "decision_matrix",
+      "title": "決策矩陣面板",
+      "section_id": "where_i_should_go",
+      "batch": 2,
+      "priority": 12,
+      "core_question": "現在適不適合做？適不適合跟這個人做？",
+      "purpose": "做決策優化，不做吉凶判斷。",
+      "formula": "decision_optimization = time_support * relationship_match * self_maturity",
+      "output_blocks": ["summary", "interpretation", "action_prompt"]
+    },
+    {
+      "id": "total_integration",
+      "title": "總整合面板",
+      "section_id": "where_i_should_go",
+      "batch": 2,
+      "priority": 17,
+      "core_question": "前面十二題最後要收斂成什麼下一步？",
+      "purpose": "把第六週主題11/12整合為生命主軸與近期行動路線。",
+      "fields": [
+        "生命主軸一句話",
+        "發光方向",
+        "核心貢獻方式",
+        "下一階段方向",
+        "近期行動建議",
+        "決策優先順序"
+      ],
+      "output_blocks": ["summary", "interpretation", "action_prompt"]
+    }
+  ]
+}

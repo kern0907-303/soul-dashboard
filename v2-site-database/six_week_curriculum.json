@@ -1,0 +1,189 @@
+{
+  "version": "1.0.0",
+  "program_name": "生命儀表板六週課程",
+  "duration_weeks": 6,
+  "topics_total": 12,
+  "program_goals": [
+    "看見自己",
+    "理解自己",
+    "收斂出人生方向與下一步"
+  ],
+  "weeks": [
+    {
+      "week": 1,
+      "theme": "我是誰，如何運作",
+      "topics": [
+        "我是什麼樣的人？",
+        "我的天賦與優勢是什麼？"
+      ],
+      "objectives": [
+        "建立基本自我輪廓",
+        "看見核心人格與自然優勢",
+        "辨識目前主要運作方式"
+      ],
+      "panel_mapping": [
+        "core_personality",
+        "talent_advantages",
+        "current_operation_dimension"
+      ],
+      "weekly_closure": "我開始知道自己是誰，也知道自己天生比較容易怎麼發揮。",
+      "outputs": [
+        "我的核心人格摘要",
+        "我的三大優勢",
+        "我的目前運作維度"
+      ]
+    },
+    {
+      "week": 2,
+      "theme": "我的內在與外在是否一致",
+      "topics": [
+        "我真正喜歡什麼？",
+        "我的表達方式，真的等於我的內心嗎？"
+      ],
+      "objectives": [
+        "辨識真正有感的事情",
+        "看見內在驅動與外在表達差距",
+        "找出內耗與誤解來源"
+      ],
+      "panel_mapping": [
+        "inner_drive",
+        "expression_consistency"
+      ],
+      "weekly_closure": "我開始分得出來，什麼是我真的喜歡，什麼只是我以為我應該喜歡。",
+      "outputs": [
+        "我的熱情來源",
+        "我的內外落差摘要",
+        "我的表達提醒"
+      ]
+    },
+    {
+      "week": 3,
+      "theme": "我重視什麼，我適合什麼",
+      "topics": [
+        "我最在意的是什麼？我的核心價值觀是什麼？",
+        "我適合什麼樣的工作、角色或發揮方式？"
+      ],
+      "objectives": [
+        "找出核心價值排序",
+        "理解適合的角色與發揮方式",
+        "建立適合自己的方向感"
+      ],
+      "panel_mapping": [
+        "value_ranking",
+        "role_fit"
+      ],
+      "weekly_closure": "我更清楚自己重視什麼，也知道自己適合在哪些位置發揮。",
+      "outputs": [
+        "我的價值排序",
+        "我的角色適配",
+        "我的適合/不適合場域清單"
+      ]
+    },
+    {
+      "week": 4,
+      "theme": "我現在要什麼，我在關係中重複什麼",
+      "topics": [
+        "我現在真正想要的是什麼？",
+        "我的人際與感情模式健康嗎？我總是在重複什麼？"
+      ],
+      "objectives": [
+        "看懂當下真正需求",
+        "理解關係中的互動慣性",
+        "辨識反覆出現的人際課題"
+      ],
+      "panel_mapping": [
+        "current_needs",
+        "relationship_pattern",
+        "relationship_dynamics"
+      ],
+      "weekly_closure": "我開始知道自己現在缺的是什麼，也看見我在關係中一直重複的模式。",
+      "outputs": [
+        "我的當下需求排序",
+        "我的關係慣性摘要",
+        "我的互動提醒"
+      ]
+    },
+    {
+      "week": 5,
+      "theme": "我的恐懼與卡點",
+      "topics": [
+        "我最害怕的是什麼？這個恐懼怎麼影響我的選擇？",
+        "我一直跨不過去的人生卡點是什麼？"
+      ],
+      "objectives": [
+        "區分能力問題與恐懼問題",
+        "辨識防衛機制",
+        "找出主要卡點與根源"
+      ],
+      "panel_mapping": [
+        "fear_and_defense",
+        "bottleneck_diagnosis"
+      ],
+      "weekly_closure": "我開始知道，真正拖住我的不是外在條件，而是我內在的恐懼與結構。",
+      "outputs": [
+        "我的核心恐懼",
+        "我的主要卡點",
+        "我的鬆動方向"
+      ]
+    },
+    {
+      "week": 6,
+      "theme": "人生方向與總整合",
+      "topics": [
+        "我的人生目標或使命是什麼？",
+        "如果拿掉期待、比較與恐懼，我真正想活出的人生是什麼？"
+      ],
+      "design": "整合式雙主題收攏，不額外開第七週",
+      "objectives": [
+        "將前五週發現整合成生命方向",
+        "提煉個人生命主軸",
+        "找出下一階段行動重點",
+        "完成總結報告"
+      ],
+      "panel_mapping": [
+        "time_rhythm",
+        "mission_direction",
+        "future_blueprint",
+        "decision_matrix",
+        "total_integration"
+      ],
+      "half_1": {
+        "title": "主題11：人生目標或使命",
+        "inputs": [
+          "core_personality",
+          "talent_advantages",
+          "value_ranking",
+          "role_fit"
+        ],
+        "outputs": [
+          "生命主軸一句話",
+          "發光方向",
+          "核心貢獻方式"
+        ]
+      },
+      "half_2": {
+        "title": "主題12：真正想活出的人生",
+        "inputs": [
+          "current_needs",
+          "relationship_pattern",
+          "fear_and_defense",
+          "bottleneck_diagnosis",
+          "time_rhythm"
+        ],
+        "outputs": [
+          "下一階段人生方向",
+          "近期行動建議",
+          "決策優先順序"
+        ]
+      },
+      "weekly_closure": "前面不是十二個分散問題，而是一起收斂成：我接下來應該怎麼走。",
+      "outputs": [
+        "我的生命主軸一句話",
+        "我的下一階段方向",
+        "我的近期行動建議",
+        "我的個人生命儀表板總結報告"
+      ]
+    }
+  ],
+  "final_summary_line": "這六週不是把人生拆得更碎，而是透過十二個主題，最後收斂成一個更清楚的自己，與一條更適合自己的路。"
+}

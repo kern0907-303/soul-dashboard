@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "soul-dashboard/v2/panel-output.schema.json",
+  "title": "PanelOutput",
+  "type": "object",
+  "required": [
+    "panel_id",
+    "panel_title",
+    "core_question",
+    "summary",
+    "interpretation",
+    "action_prompt",
+    "data",
+    "tags",
+    "risk_level",
+    "priority"
+  ],
+  "properties": {
+    "panel_id": { "type": "string" },
+    "panel_title": { "type": "string" },
+    "core_question": { "type": "string" },
+    "summary": { "type": "string", "minLength": 1 },
+    "interpretation": { "type": "string", "minLength": 1 },
+    "action_prompt": { "type": "string", "minLength": 1 },
+    "data": { "type": "object" },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": ["low", "medium", "high"]
+    },
+    "priority": {
+      "type": "integer",
+      "minimum": 1
+    }
+  },
+  "additionalProperties": true
+}

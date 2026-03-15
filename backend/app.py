@@ -276,10 +276,7 @@ def get_lunar_struct(s_date):
     return None
 
 def calc_flows_detailed(birth_y, birth_m, birth_d, curr_y, curr_m, curr_d, sign=""):
-    if (curr_m, curr_d) >= (birth_m, birth_d):
-        fy_base = curr_y
-    else:
-        fy_base = curr_y - 1
+    fy_base = curr_y
 
     fy_str = f"{fy_base}{birth_m:02d}{birth_d:02d}"
     fy_path, fy_num = calc_path(fy_str, sign)
@@ -291,9 +288,9 @@ def calc_flows_detailed(birth_y, birth_m, birth_d, curr_y, curr_m, curr_d, sign=
     fd_path, fd_num = calc_path(fd_str, sign)
 
     return {
-        "year": {"path": fy_path, "num": fy_num},
-        "month": {"path": fm_path, "num": fm_num},
-        "day": {"path": fd_path, "num": fd_num}
+        "year": {"base": fy_str, "path": fy_path, "num": fy_num},
+        "month": {"base": fm_str, "path": fm_path, "num": fm_num},
+        "day": {"base": fd_str, "path": fd_path, "num": fd_num}
     }
 
 def get_color(score):
@@ -323,9 +320,9 @@ def calculate():
     
     bd_str = f"{birth_year}{birth_month:02d}{birth_day:02d}"
     
-    solar_path, _, solar_main, solar_digits, solar_lv, solar_counts = calc_soul_level_full(bd_str, "+")
-    solar_lv_str = str(judge_level(sum(solar_digits), solar_main, set(solar_digits), False))
+    solar_path, solar_lv_str, solar_main, solar_digits, solar_lv, solar_counts = calc_soul_level_full(bd_str, "+")
     solar_flows = calc_flows_detailed(birth_year, birth_month, birth_day, curr_y, curr_m, curr_d, "+")
+    _, solar_flow_lv_str, _, _, _, _ = calc_soul_level_full(solar_flows['year']['base'], "+")
     solar_lines = calc_matrix_lines(set(solar_digits))
     
     solar_rules = {
@@ -354,13 +351,15 @@ def calculate():
         lunar_date_str = f"陰曆 {ly}年 {lm}月 {ld}日"
         l_bd_str = f"{ly}{lm:02d}{ld:02d}"
         
-        lunar_path, _, lunar_main, lunar_digits, lunar_lv, lunar_counts = calc_soul_level_full(l_bd_str, "-")
-        lunar_lv_str = str(judge_level(sum(lunar_digits), lunar_main, set(lunar_digits), False))
+        lunar_path, lunar_lv_str, lunar_main, lunar_digits, lunar_lv, lunar_counts = calc_soul_level_full(l_bd_str, "-")
 
         if l_curr_struct:
             l_curr_y, l_curr_m, l_curr_d = l_curr_struct['y'], l_curr_struct['m'], l_curr_struct['d']
             lunar_today_str = f"陰曆 {l_curr_y}/{l_curr_m}/{l_curr_d}"
             lunar_flows = calc_flows_detailed(ly, lm, ld, l_curr_y, l_curr_m, l_curr_d, "-")
+            _, lunar_flow_lv_str, _, _, _, _ = calc_soul_level_full(lunar_flows['year']['base'], "-")
+        else:
+            lunar_flow_lv_str = "-"
         
         lunar_lines = calc_matrix_lines(set(lunar_digits))
         
@@ -380,11 +379,15 @@ def calculate():
         "year": curr_y,
         "solarDateStr": f"陽曆 {birth_year}年 {birth_month}月 {birth_day}日", "lunarDateStr": lunar_date_str,
         "todayDateStr": f"{today.year}/{today.month}/{today.day}", "lunarTodayStr": lunar_today_str,
-        "solar": solar_flows['year']['path'], "solarKw": "流年", "flowSolarLv": str(solar_flows['year']['num']),
+        "solar": solar_flows['year']['path'], "solarKw": "流年",
+        "flowSolarNum": str(solar_flows['year']['num']),
+        "flowSolarLv": solar_flow_lv_str,
         "solarMonth": solar_flows['month']['path'], "solarMonthNum": solar_flows['month']['num'],
         "solarDay": solar_flows['day']['path'], "solarDayNum": solar_flows['day']['num'],
         "mainSolar": solar_path, "mainSolarLv": solar_lv_str, "mainSolarNum": solar_main,
-        "lunar": lunar_flows['year']['path'], "lunarKw": "流年", "flowLunarLv": str(lunar_flows['year']['num']),
+        "lunar": lunar_flows['year']['path'], "lunarKw": "流年",
+        "flowLunarNum": str(lunar_flows['year']['num']),
+        "flowLunarLv": lunar_flow_lv_str if l_birth_struct else "-",
         "lunarMonth": lunar_flows['month']['path'], "lunarMonthNum": lunar_flows['month']['num'],
         "lunarDay": lunar_flows['day']['path'], "lunarDayNum": lunar_flows['day']['num'],
         "mainLunar": lunar_path, "mainLunarLv": lunar_lv_str, "mainLunarNum": lunar_main,

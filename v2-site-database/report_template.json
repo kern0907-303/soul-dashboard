@@ -1,0 +1,65 @@
+{
+  "version": "2.2.0",
+  "report_name": "個人總結報告",
+  "required_sections": [
+    {
+      "id": "who_am_i",
+      "title": "我是誰",
+      "fields": ["核心人格摘要", "主要運作方式", "目前運作維度"]
+    },
+    {
+      "id": "my_strengths_and_talents",
+      "title": "我的優勢與發光點",
+      "fields": ["三大優勢", "最適合的角色", "最容易展現價值的場域"]
+    },
+    {
+      "id": "my_inner_outer_gap",
+      "title": "我的內外落差",
+      "fields": ["內在驅動", "外在表達", "常見誤解"]
+    },
+    {
+      "id": "my_values_and_fit",
+      "title": "我的核心價值與適配方向",
+      "fields": ["價值排序", "角色適配", "適合/不適合場域"]
+    },
+    {
+      "id": "my_needs_and_relationships",
+      "title": "我的當下需求與關係模式",
+      "fields": ["當下需求排序", "關係慣性摘要", "互動提醒"]
+    },
+    {
+      "id": "my_fears_and_blocks",
+      "title": "我的恐懼與核心卡點",
+      "fields": ["核心恐懼", "主要卡點", "鬆動方向"]
+    },
+    {
+      "id": "my_mission",
+      "title": "我的生命主軸",
+      "fields": ["生命主軸一句話", "發光方向", "核心貢獻方式"]
+    },
+    {
+      "id": "my_next_steps",
+      "title": "我的下一步方向",
+      "fields": ["下一階段方向", "近期行動建議", "決策優先順序"]
+    }
+  ],
+  "panel_input_dependencies": [
+    "core_personality",
+    "talent_advantages",
+    "current_operation_dimension",
+    "inner_drive",
+    "expression_consistency",
+    "value_ranking",
+    "role_fit",
+    "current_needs",
+    "relationship_pattern",
+    "relationship_dynamics",
+    "fear_and_defense",
+    "bottleneck_diagnosis",
+    "time_rhythm",
+    "mission_direction",
+    "future_blueprint",
+    "decision_matrix",
+    "total_integration"
+  ]
+}

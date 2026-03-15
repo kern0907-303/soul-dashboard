@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Soul Dashboard V2 Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #F8F6F2;
+      --bg-secondary: #FDFCF9;
+      --card-primary: #FFFFFF;
+      --card-secondary: #FAF8F4;
+      --brand-primary: #5C6F91;
+      --brand-secondary: #C8A96B;
+      --text-primary: #2F3640;
+      --text-secondary: #6B7280;
+      --border: #E7E1D8;
+      --divider: #EFEAE2;
+      --support: #7BAA8B;
+      --transform: #D8A35D;
+      --risk: #C97C6D;
+      --neutral: #7C92B8;
+      --section-who: #EEF2F8;
+      --section-fit: #EEF6F0;
+      --section-stuck: #FAF3E8;
+      --section-go: #F6F2EA;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, var(--bg-secondary), var(--bg-primary));
+      color: var(--text-primary);
+      font-family: "Noto Sans TC", sans-serif;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    .hero {
+      background: var(--card-primary);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 8px 24px rgba(47, 54, 64, 0.04);
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      margin: 0 0 10px;
+      font-family: "Noto Serif TC", serif;
+      color: var(--brand-primary);
+      font-size: 28px;
+    }
+    .hero p { margin: 0; color: var(--text-secondary); line-height: 1.6; }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .meta-card {
+      background: var(--card-secondary);
+      border: 1px solid var(--divider);
+      border-radius: 16px;
+      padding: 14px 16px;
+    }
+    .meta-label { font-size: 12px; color: var(--text-secondary); }
+    .meta-value { font-size: 15px; font-weight: 600; margin-top: 6px; }
+    .section {
+      margin-top: 20px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: var(--card-primary);
+      overflow: hidden;
+    }
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--divider);
+    }
+    .section-badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--brand-primary);
+    }
+    .section-title { margin: 0; font-family: "Noto Serif TC", serif; font-size: 22px; }
+    .panel-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+      padding: 16px;
+    }
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--card-secondary);
+      padding: 16px;
+      min-height: 230px;
+    }
+    .panel-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .panel-title { margin: 0; font-size: 17px; color: var(--text-primary); }
+    .pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--divider);
+      font-size: 11px;
+      color: var(--text-secondary);
+      background: #fff;
+      font-family: Inter, sans-serif;
+    }
+    .question {
+      margin: 10px 0;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: #fff;
+      border: 1px solid var(--divider);
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .fields {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.6;
+      max-height: 100px;
+      overflow: auto;
+    }
+    .blocks { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+    .block {
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-family: Inter, sans-serif;
+      border: 1px solid var(--divider);
+      background: #fff;
+    }
+    .footer {
+      margin-top: 20px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--card-primary);
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+    @media (max-width: 640px) {
+      .container { padding: 14px; }
+      .hero { padding: 18px; }
+      .section-head { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="app">載入中...</div>
+
+  <script>
+    const sectionBg = {
+      who_am_i: 'var(--section-who)',
+      what_fits_me: 'var(--section-fit)',
+      where_i_am_stuck: 'var(--section-stuck)',
+      where_i_should_go: 'var(--section-go)'
+    };
+
+    async function loadJson(path) {
+      const res = await fetch(path);
+      if (!res.ok) throw new Error('Failed: ' + path);
+      return res.json();
+    }
+
+    function panelCard(panel) {
+      const fields = (panel.fields || []).slice(0, 6).map(f => `<li>${f}</li>`).join('');
+      const blocks = (panel.output_blocks || []).map(b => `<span class="block">${b}</span>`).join('');
+      return `
+        <article class="panel">
+          <div class="panel-top">
+            <h3 class="panel-title">${panel.title}</h3>
+            <span class="pill">P${panel.priority}</span>
+          </div>
+          <div class="question">核心問題：${panel.core_question}</div>
+          <ul class="fields">${fields}</ul>
+          <div class="blocks">${blocks}</div>
+        </article>
+      `;
+    }
+
+    function sectionBlock(section, panelMap) {
+      const cards = section.panels
+        .map(id => panelMap.get(id))
+        .filter(Boolean)
+        .sort((a, b) => a.priority - b.priority)
+        .map(panelCard)
+        .join('');
+
+      return `
+        <section class="section">
+          <div class="section-head">
+            <h2 class="section-title">${section.name}</h2>
+            <span class="section-badge" style="background:${sectionBg[section.id] || '#f3f3f3'}">${section.id}</span>
+          </div>
+          <div class="panel-grid">${cards}</div>
+        </section>
+      `;
+    }
+
+    async function init() {
+      const app = document.getElementById('app');
+      try {
+        const [registry, tone, report] = await Promise.all([
+          loadJson('./data/panel_registry.json'),
+          loadJson('./data/tone_guidelines.json'),
+          loadJson('./data/report_template.json')
+        ]);
+
+        const panelMap = new Map((registry.panels || []).map(p => [p.id, p]));
+        const sectionsHtml = (registry.sections || []).map(s => sectionBlock(s, panelMap)).join('');
+
+        app.innerHTML = `
+          <section class="hero">
+            <h1>Soul Dashboard V2 可視化草圖</h1>
+            <p>定位：${registry.product_positioning.statement}</p>
+            <div class="meta-grid">
+              <div class="meta-card">
+                <div class="meta-label">產品路徑</div>
+                <div class="meta-value">${registry.product_positioning.goal_path.join(' → ')}</div>
+              </div>
+              <div class="meta-card">
+                <div class="meta-label">語氣比例</div>
+                <div class="meta-value">理性教練 ${Math.round(tone.ratio.rational_coach * 100)}% / 溫暖陪伴 ${Math.round(tone.ratio.warm_companion * 100)}%</div>
+              </div>
+              <div class="meta-card">
+                <div class="meta-label">總面板數</div>
+                <div class="meta-value">${registry.panels.length} 個</div>
+              </div>
+              <div class="meta-card">
+                <div class="meta-label">報告章節</div>
+                <div class="meta-value">${report.required_sections.length} 個</div>
+              </div>
+            </div>
+          </section>
+          ${sectionsHtml}
+          <section class="footer">此頁為規格可視化預覽，下一步可直接接前端元件與後端 adapter。</section>
+        `;
+      } catch (err) {
+        app.innerHTML = `<div style="color:#C97C6D">載入失敗：${err.message}</div>`;
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
