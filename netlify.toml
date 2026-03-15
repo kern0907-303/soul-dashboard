@@ -9,6 +9,11 @@
   force = true
 
 [[redirects]]
+  from = "/cn"
+  to = "/cn.html"
+  status = 302
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200

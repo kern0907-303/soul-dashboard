@@ -45,15 +45,15 @@
       <div class="grid">
         <div>
           <label>姓名</label>
-          <input id="name" placeholder="王小明" />
+          <input id="name" placeholder="王小明" autocomplete="off" />
         </div>
         <div>
           <label>電話</label>
-          <input id="phone" placeholder="13800138000" />
+          <input id="phone" placeholder="13800138000" autocomplete="off" />
         </div>
         <div class="full">
           <label>微信號</label>
-          <input id="wechat_id" placeholder="weixin_abc123" />
+          <input id="wechat_id" placeholder="weixin_abc123" autocomplete="off" />
         </div>
       </div>
       <div class="btns">
@@ -115,6 +115,12 @@
       if (!key) return;
       window.open(`/api/admin/dashboard?key=${encodeURIComponent(key)}`, "_blank");
     };
+
+    window.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("name").value = "";
+      document.getElementById("phone").value = "";
+      document.getElementById("wechat_id").value = "";
+    });
   </script>
 </body>
 </html>
