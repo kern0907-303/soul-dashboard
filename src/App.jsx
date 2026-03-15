@@ -14,7 +14,7 @@ import html2canvas from 'html2canvas';
 // ==========================================
 // 0. 系統設定
 // ==========================================
-const API_BASE = 'https://soul-dashboard.onrender.com';
+const API_BASE = (import.meta.env.VITE_API_BASE || "/api").replace(/\/+$/, "");
 
 // ==========================================
 // 1. 全域變數 & 工具函式
