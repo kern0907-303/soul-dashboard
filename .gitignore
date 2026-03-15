@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# macOS metadata
+._*
+
+# Python cache
+__pycache__/
+*.pyc
