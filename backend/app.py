@@ -11,7 +11,10 @@ app = Flask(__name__)
 CORS(app)
 
 BASE_DIR = Path(__file__).resolve().parent
-CHINA_DB_PATH = BASE_DIR / "china_auth.db"
+if os.environ.get("RENDER") or os.environ.get("IS_RENDER"):
+    CHINA_DB_PATH = Path("/tmp/china_auth.db")
+else:
+    CHINA_DB_PATH = BASE_DIR / "china_auth.db"
 CHINA_SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -295,7 +298,7 @@ def china_now_iso():
 
 
 def china_db():
-    conn = sqlite3.connect(CHINA_DB_PATH)
+    conn = sqlite3.connect(CHINA_DB_PATH, timeout=2)
     conn.row_factory = sqlite3.Row
     return conn
 
