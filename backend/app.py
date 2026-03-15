@@ -1,9 +1,47 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import datetime
+import os
+import html
+import sqlite3
+import secrets
+from pathlib import Path
 
 app = Flask(__name__)
 CORS(app)
+
+BASE_DIR = Path(__file__).resolve().parent
+CHINA_DB_PATH = BASE_DIR / "china_auth.db"
+CHINA_SCHEMA_SQL = """
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  phone TEXT UNIQUE,
+  wechat_id TEXT UNIQUE,
+  last_login_at TEXT,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS sessions (
+  token TEXT PRIMARY KEY,
+  user_id INTEGER NOT NULL,
+  created_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  FOREIGN KEY(user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS login_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  login_method TEXT NOT NULL,
+  ip TEXT,
+  user_agent TEXT,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY(user_id) REFERENCES users(id)
+);
+"""
+CHINA_ADMIN_KEY = os.environ.get("CHINA_ADMIN_KEY", "change-me")
+CHINA_SESSION_DAYS = int(os.environ.get("CHINA_SESSION_DAYS", "30"))
 
 # ==========================================
 # 1. 農曆資料庫 (請確保這裡是完整的 1900-2030 資料!)
@@ -251,6 +289,61 @@ def calc_matrix_lines(innate_set):
             active_lines.append({'id': key, 'name': rule['name'], 'desc': rule['desc']})
     return active_lines
 
+
+def china_now_iso():
+    return datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+
+def china_db():
+    conn = sqlite3.connect(CHINA_DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def china_init_db():
+    with china_db() as conn:
+        conn.executescript(CHINA_SCHEMA_SQL)
+
+
+def china_get_bearer_token():
+    auth = request.headers.get("Authorization", "")
+    if not auth.startswith("Bearer "):
+        return ""
+    return auth.replace("Bearer ", "", 1).strip()
+
+
+def china_create_session(conn, user_id):
+    token = secrets.token_urlsafe(32)
+    created = datetime.datetime.now(datetime.timezone.utc)
+    expires = created + datetime.timedelta(days=CHINA_SESSION_DAYS)
+    conn.execute(
+        "INSERT INTO sessions (token, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)",
+        (token, user_id, created.isoformat(), expires.isoformat()),
+    )
+    return token
+
+
+def china_fetch_user_by_token(conn, token):
+    row = conn.execute(
+        """
+        SELECT s.token, s.expires_at, u.id, u.name, u.phone, u.wechat_id, u.last_login_at, u.created_at
+        FROM sessions s
+        JOIN users u ON u.id = s.user_id
+        WHERE s.token = ?
+        """,
+        (token,),
+    ).fetchone()
+    if not row:
+        return None
+    exp = datetime.datetime.fromisoformat(row["expires_at"])
+    if exp < datetime.datetime.now(datetime.timezone.utc):
+        conn.execute("DELETE FROM sessions WHERE token = ?", (token,))
+        return None
+    return row
+
+
+china_init_db()
+
 def get_lunar_struct(s_date):
     y = s_date.year
     if y not in LUNAR_DB: return None
@@ -426,6 +519,207 @@ def calculate_lifecycle():
             "solarNum": s_flows['year']['num'], "lunarNum": l_flow_num,
         })
     return jsonify(lifecycle_data)
+
+
+@app.route('/auth/login', methods=['POST'])
+def china_auth_login():
+    data = request.json or {}
+    name = str(data.get('name', '')).strip()
+    phone = str(data.get('phone', '')).strip() or None
+    wechat_id = str(data.get('wechat_id', '')).strip() or None
+    if not name:
+        return jsonify({"ok": False, "error": "name is required"}), 400
+    if not phone and not wechat_id:
+        return jsonify({"ok": False, "error": "phone or wechat_id is required"}), 400
+
+    now = china_now_iso()
+    login_method = "phone" if phone else "wechat_id"
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+    ua = request.headers.get("User-Agent", "")
+
+    with china_db() as conn:
+        user = None
+        if phone:
+            user = conn.execute("SELECT * FROM users WHERE phone = ?", (phone,)).fetchone()
+        if not user and wechat_id:
+            user = conn.execute("SELECT * FROM users WHERE wechat_id = ?", (wechat_id,)).fetchone()
+
+        if user:
+            user_id = user["id"]
+            conn.execute(
+                """
+                UPDATE users
+                SET name = ?, phone = COALESCE(phone, ?), wechat_id = COALESCE(wechat_id, ?), last_login_at = ?
+                WHERE id = ?
+                """,
+                (name, phone, wechat_id, now, user_id),
+            )
+        else:
+            cur = conn.execute(
+                "INSERT INTO users (name, phone, wechat_id, last_login_at, created_at) VALUES (?, ?, ?, ?, ?)",
+                (name, phone, wechat_id, now, now),
+            )
+            user_id = cur.lastrowid
+
+        token = china_create_session(conn, user_id)
+        conn.execute(
+            "INSERT INTO login_events (user_id, login_method, ip, user_agent, created_at) VALUES (?, ?, ?, ?, ?)",
+            (user_id, login_method, ip, ua, now),
+        )
+        conn.commit()
+
+        user_out = conn.execute(
+            "SELECT id, name, phone, wechat_id, last_login_at, created_at FROM users WHERE id = ?",
+            (user_id,),
+        ).fetchone()
+
+    return jsonify({"ok": True, "token": token, "user": dict(user_out)})
+
+
+@app.route('/auth/me', methods=['GET'])
+def china_auth_me():
+    token = china_get_bearer_token()
+    if not token:
+        return jsonify({"ok": False, "error": "missing token"}), 401
+    with china_db() as conn:
+        user = china_fetch_user_by_token(conn, token)
+        if not user:
+            return jsonify({"ok": False, "error": "invalid or expired token"}), 401
+        return jsonify(
+            {
+                "ok": True,
+                "user": {
+                    "id": user["id"],
+                    "name": user["name"],
+                    "phone": user["phone"],
+                    "wechat_id": user["wechat_id"],
+                    "last_login_at": user["last_login_at"],
+                    "created_at": user["created_at"],
+                },
+            }
+        )
+
+
+@app.route('/auth/logout', methods=['POST'])
+def china_auth_logout():
+    token = china_get_bearer_token()
+    if not token:
+        return jsonify({"ok": False, "error": "missing token"}), 401
+    with china_db() as conn:
+        conn.execute("DELETE FROM sessions WHERE token = ?", (token,))
+        conn.commit()
+    return jsonify({"ok": True})
+
+
+@app.route('/admin/users', methods=['GET'])
+def china_admin_users():
+    if request.headers.get("X-Admin-Key", "") != CHINA_ADMIN_KEY:
+        return jsonify({"ok": False, "error": "forbidden"}), 403
+    with china_db() as conn:
+        rows = conn.execute(
+            "SELECT id, name, phone, wechat_id, last_login_at, created_at FROM users ORDER BY datetime(last_login_at) DESC"
+        ).fetchall()
+    return jsonify({"ok": True, "items": [dict(r) for r in rows]})
+
+
+@app.route('/admin/login-events', methods=['GET'])
+def china_admin_login_events():
+    if request.headers.get("X-Admin-Key", "") != CHINA_ADMIN_KEY:
+        return jsonify({"ok": False, "error": "forbidden"}), 403
+    with china_db() as conn:
+        rows = conn.execute(
+            """
+            SELECT e.id, u.name, u.phone, u.wechat_id, e.login_method, e.ip, e.created_at
+            FROM login_events e
+            JOIN users u ON u.id = e.user_id
+            ORDER BY datetime(e.created_at) DESC
+            LIMIT 500
+            """
+        ).fetchall()
+    return jsonify({"ok": True, "items": [dict(r) for r in rows]})
+
+
+@app.route('/admin/dashboard', methods=['GET'])
+def china_admin_dashboard():
+    key = request.args.get("key", "")
+    if key != CHINA_ADMIN_KEY:
+        return (
+            "<h3>403 Forbidden</h3><p>invalid admin key</p>",
+            403,
+            {"Content-Type": "text/html; charset=utf-8"},
+        )
+
+    with china_db() as conn:
+        users = conn.execute(
+            "SELECT id, name, phone, wechat_id, last_login_at, created_at FROM users ORDER BY datetime(last_login_at) DESC"
+        ).fetchall()
+        events = conn.execute(
+            """
+            SELECT e.id, u.name, u.phone, u.wechat_id, e.login_method, e.ip, e.created_at
+            FROM login_events e
+            JOIN users u ON u.id = e.user_id
+            ORDER BY datetime(e.created_at) DESC
+            LIMIT 500
+            """
+        ).fetchall()
+
+    user_rows = "".join(
+        f"<tr><td>{u['id']}</td><td>{html.escape(u['name'] or '')}</td><td>{html.escape(u['phone'] or '')}</td>"
+        f"<td>{html.escape(u['wechat_id'] or '')}</td><td>{html.escape(u['last_login_at'] or '')}</td>"
+        f"<td>{html.escape(u['created_at'] or '')}</td></tr>"
+        for u in users
+    )
+    event_rows = "".join(
+        f"<tr><td>{e['id']}</td><td>{html.escape(e['name'] or '')}</td><td>{html.escape(e['phone'] or '')}</td>"
+        f"<td>{html.escape(e['wechat_id'] or '')}</td><td>{html.escape(e['login_method'] or '')}</td>"
+        f"<td>{html.escape(e['ip'] or '')}</td><td>{html.escape(e['created_at'] or '')}</td></tr>"
+        for e in events
+    )
+
+    page = f"""
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>生命藍圖後台資料庫</title>
+  <style>
+    body {{ font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", sans-serif; margin: 0; background: #f8f6f2; color: #2f3640; }}
+    .wrap {{ max-width: 1200px; margin: 20px auto; padding: 0 14px; }}
+    .card {{ background: #fff; border: 1px solid #e7e1d8; border-radius: 14px; padding: 14px; margin-bottom: 12px; }}
+    h1 {{ margin: 0 0 10px; font-size: 22px; }}
+    h2 {{ margin: 0 0 8px; font-size: 17px; }}
+    .meta {{ color: #6b7280; font-size: 12px; margin-bottom: 8px; }}
+    table {{ width: 100%; border-collapse: collapse; font-size: 13px; }}
+    th, td {{ border: 1px solid #ece7df; padding: 8px; text-align: left; }}
+    th {{ background: #fdfcf9; }}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>生命藍圖後台資料庫</h1>
+      <div class="meta">目前使用者：{len(users)} | 登入紀錄：{len(events)} | 重新整理可更新</div>
+    </div>
+    <div class="card">
+      <h2>使用者清單</h2>
+      <table>
+        <thead><tr><th>ID</th><th>姓名</th><th>電話</th><th>微信號</th><th>最後登入</th><th>建立時間</th></tr></thead>
+        <tbody>{user_rows}</tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h2>登入紀錄</h2>
+      <table>
+        <thead><tr><th>ID</th><th>姓名</th><th>電話</th><th>微信號</th><th>方式</th><th>IP</th><th>時間</th></tr></thead>
+        <tbody>{event_rows}</tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>
+"""
+    return page, 200, {"Content-Type": "text/html; charset=utf-8"}
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

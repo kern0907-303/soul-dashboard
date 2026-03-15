@@ -29,3 +29,8 @@ dist-ssr
 # Python cache
 __pycache__/
 *.pyc
+
+# China backend local secrets/data
+china-version/backend/.env
+china-version/backend/china_auth.db
+china-version/backend/.venv/

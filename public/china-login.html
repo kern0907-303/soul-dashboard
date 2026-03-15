@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>生命藍圖儀表板登入</title>
+  <style>
+    :root {
+      --bg: #f8f6f2;
+      --card: #ffffff;
+      --line: #e7e1d8;
+      --text: #2f3640;
+      --sub: #6b7280;
+      --main: #5c6f91;
+      --good: #7baa8b;
+      --bad: #c97c6d;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", sans-serif; background: var(--bg); color: var(--text); }
+    .wrap { max-width: 720px; margin: 24px auto; padding: 0 16px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px; margin-bottom: 14px; }
+    h1 { margin: 0 0 14px; font-size: 22px; }
+    h2 { margin: 0 0 10px; font-size: 18px; }
+    .hint { color: var(--sub); font-size: 13px; margin-bottom: 8px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .full { grid-column: 1 / -1; }
+    label { font-size: 13px; color: var(--sub); display: block; margin-bottom: 4px; }
+    input { width: 100%; padding: 10px; border: 1px solid #d5d5d5; border-radius: 10px; background: #fff; }
+    .btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+    button { border: 0; border-radius: 10px; padding: 10px 14px; background: var(--main); color: #fff; cursor: pointer; font-weight: 600; }
+    button.secondary { background: #f3efe8; color: var(--main); border: 1px solid #d9d3c8; }
+    .status { font-size: 14px; margin-top: 8px; }
+    .ok { color: var(--good); }
+    .err { color: var(--bad); }
+    @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>生命藍圖儀表板登入</h1>
+
+    <div class="card">
+      <h2>登入</h2>
+      <div class="hint">姓名必填，電話與微信號至少一個。</div>
+      <div class="grid">
+        <div>
+          <label>姓名</label>
+          <input id="name" placeholder="王小明" />
+        </div>
+        <div>
+          <label>電話</label>
+          <input id="phone" placeholder="13800138000" />
+        </div>
+        <div class="full">
+          <label>微信號</label>
+          <input id="wechat_id" placeholder="weixin_abc123" />
+        </div>
+      </div>
+      <div class="btns">
+        <button id="btnLogin">登入生命藍圖儀表板</button>
+        <button id="btnAdmin" class="secondary">開啟後台資料庫</button>
+      </div>
+      <div id="statusMsg" class="status"></div>
+    </div>
+  </div>
+
+  <script>
+    const statusMsg = document.getElementById("statusMsg");
+    const tokenKey = "china_auth_token";
+    const API = "/api";
+    const DASHBOARD_URL = "/";
+
+    function setStatus(text, ok = true) {
+      statusMsg.className = `status ${ok ? "ok" : "err"}`;
+      statusMsg.textContent = text;
+    }
+
+    async function call(path, options = {}) {
+      const headers = Object.assign({}, options.headers || {});
+      const token = localStorage.getItem(tokenKey) || "";
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+      const res = await fetch(`${API}${path}`, Object.assign({}, options, { headers }));
+      let data;
+      try {
+        data = await res.json();
+      } catch (_) {
+        data = { ok: false, error: "invalid response", http_status: res.status };
+      }
+      if (!res.ok && !data.http_status) data.http_status = res.status;
+      return data;
+    }
+
+    document.getElementById("btnLogin").onclick = async () => {
+      const payload = {
+        name: document.getElementById("name").value.trim(),
+        phone: document.getElementById("phone").value.trim(),
+        wechat_id: document.getElementById("wechat_id").value.trim(),
+      };
+      const data = await call("/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (data.ok && data.token) {
+        localStorage.setItem(tokenKey, data.token);
+        setStatus(`登入成功，歡迎 ${data.user?.name || "使用者"}，正在跳轉儀表板...`);
+        setTimeout(() => { window.location.href = DASHBOARD_URL; }, 500);
+      } else {
+        setStatus(`登入失敗：${data.error || "請檢查資料"}`, false);
+      }
+    };
+
+    document.getElementById("btnAdmin").onclick = () => {
+      const key = window.prompt("請輸入管理員 Key（CHINA_ADMIN_KEY）");
+      if (!key) return;
+      window.open(`/api/admin/dashboard?key=${encodeURIComponent(key)}`, "_blank");
+    };
+  </script>
+</body>
+</html>
