@@ -756,6 +756,9 @@ def serve_frontend(path):
     if not FRONTEND_DIST.exists():
         return jsonify({"ok": False, "error": "frontend not built"}), 503
 
+    if path == 'cn':
+        return send_from_directory(FRONTEND_DIST, 'china-login.html')
+
     target = FRONTEND_DIST / path
     if path and target.exists() and target.is_file():
         return send_from_directory(FRONTEND_DIST, path)
