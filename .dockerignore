@@ -1,0 +1,11 @@
+.git
+.gitignore
+node_modules
+dist
+china-version
+backend/__pycache__
+**/__pycache__
+**/.DS_Store
+**/._*
+.venv
+*.log

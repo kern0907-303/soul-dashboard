@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import datetime
 import os
@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS login_events (
 """
 CHINA_ADMIN_KEY = os.environ.get("CHINA_ADMIN_KEY", "change-me")
 CHINA_SESSION_DAYS = int(os.environ.get("CHINA_SESSION_DAYS", "30"))
+FRONTEND_DIST = Path(os.environ.get("FRONTEND_DIST", str(BASE_DIR.parent / "dist")))
 
 # ==========================================
 # 1. 農曆資料庫 (請確保這裡是完整的 1900-2030 資料!)
@@ -402,6 +403,7 @@ def calc_soul_level_full(birthday_str, sign=""):
     return path_str, str(level), main_number, innate_digits, level, digit_counts
 
 @app.route('/calculate', methods=['POST'])
+@app.route('/api/calculate', methods=['POST'])
 def calculate():
     data = request.json
     birth_year = int(data.get('year'))
@@ -493,6 +495,7 @@ def calculate():
     return jsonify(response_data)
 
 @app.route('/calculate_lifecycle', methods=['POST'])
+@app.route('/api/calculate_lifecycle', methods=['POST'])
 def calculate_lifecycle():
     data = request.json
     birth_year = int(data.get('year'))
@@ -525,6 +528,7 @@ def calculate_lifecycle():
 
 
 @app.route('/auth/login', methods=['POST'])
+@app.route('/api/auth/login', methods=['POST'])
 def china_auth_login():
     data = request.json or {}
     name = str(data.get('name', '')).strip()
@@ -580,6 +584,7 @@ def china_auth_login():
 
 
 @app.route('/auth/me', methods=['GET'])
+@app.route('/api/auth/me', methods=['GET'])
 def china_auth_me():
     token = china_get_bearer_token()
     if not token:
@@ -604,6 +609,7 @@ def china_auth_me():
 
 
 @app.route('/auth/logout', methods=['POST'])
+@app.route('/api/auth/logout', methods=['POST'])
 def china_auth_logout():
     token = china_get_bearer_token()
     if not token:
@@ -615,6 +621,7 @@ def china_auth_logout():
 
 
 @app.route('/admin/users', methods=['GET'])
+@app.route('/api/admin/users', methods=['GET'])
 def china_admin_users():
     if request.headers.get("X-Admin-Key", "") != CHINA_ADMIN_KEY:
         return jsonify({"ok": False, "error": "forbidden"}), 403
@@ -626,6 +633,7 @@ def china_admin_users():
 
 
 @app.route('/admin/login-events', methods=['GET'])
+@app.route('/api/admin/login-events', methods=['GET'])
 def china_admin_login_events():
     if request.headers.get("X-Admin-Key", "") != CHINA_ADMIN_KEY:
         return jsonify({"ok": False, "error": "forbidden"}), 403
@@ -643,6 +651,7 @@ def china_admin_login_events():
 
 
 @app.route('/admin/dashboard', methods=['GET'])
+@app.route('/api/admin/dashboard', methods=['GET'])
 def china_admin_dashboard():
     key = request.args.get("key", "")
     if key != CHINA_ADMIN_KEY:
@@ -723,6 +732,34 @@ def china_admin_dashboard():
 </html>
 """
     return page, 200, {"Content-Type": "text/html; charset=utf-8"}
+
+
+@app.route('/health', methods=['GET'])
+@app.route('/api/health', methods=['GET'])
+def health():
+    return jsonify(
+        {
+            "ok": True,
+            "service": "soul-dashboard",
+            "time": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        }
+    )
+
+
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_frontend(path):
+    # Keep API endpoints handled by dedicated routes
+    if path.startswith('api/'):
+        return jsonify({"ok": False, "error": "not found"}), 404
+
+    if not FRONTEND_DIST.exists():
+        return jsonify({"ok": False, "error": "frontend not built"}), 503
+
+    target = FRONTEND_DIST / path
+    if path and target.exists() and target.is_file():
+        return send_from_directory(FRONTEND_DIST, path)
+    return send_from_directory(FRONTEND_DIST, 'index.html')
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
