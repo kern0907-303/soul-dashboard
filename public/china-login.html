@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-store" />
   <title>生命藍圖儀表板登入</title>
   <style>
     :root {
@@ -79,15 +80,30 @@
       const headers = Object.assign({}, options.headers || {});
       const token = localStorage.getItem(tokenKey) || "";
       if (token) headers["Authorization"] = `Bearer ${token}`;
-      const res = await fetch(`${API}${path}`, Object.assign({}, options, { headers }));
-      let data;
-      try {
-        data = await res.json();
-      } catch (_) {
-        data = { ok: false, error: "invalid response", http_status: res.status };
+
+      let lastErr = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 30000);
+        try {
+          const res = await fetch(`${API}${path}`, Object.assign({}, options, { headers, signal: controller.signal }));
+          clearTimeout(timer);
+          const raw = await res.text();
+          let data;
+          try {
+            data = raw ? JSON.parse(raw) : {};
+          } catch (_) {
+            data = { ok: false, error: `invalid response (${res.status})`, detail: raw.slice(0, 200), http_status: res.status };
+          }
+          if (!res.ok && !data.http_status) data.http_status = res.status;
+          return data;
+        } catch (e) {
+          clearTimeout(timer);
+          lastErr = e;
+          if (attempt < 2) await new Promise((r) => setTimeout(r, 1200 * (attempt + 1)));
+        }
       }
-      if (!res.ok && !data.http_status) data.http_status = res.status;
-      return data;
+      return { ok: false, error: "network timeout", detail: String(lastErr || "") };
     }
 
     document.getElementById("btnLogin").onclick = async () => {
@@ -120,6 +136,17 @@
       document.getElementById("name").value = "";
       document.getElementById("phone").value = "";
       document.getElementById("wechat_id").value = "";
+    });
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      if ("serviceWorker" in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        regs.forEach((r) => r.unregister());
+      }
+      if ("caches" in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      }
     });
   </script>
 </body>
