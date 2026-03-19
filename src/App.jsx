@@ -2086,7 +2086,7 @@ export default function SoulDashboard() {
         <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-cyan-300">生命藍圖資料庫</h2>
-            <span className="text-xs text-slate-400">點擊面板名稱可展開完整內容</span>
+            <span className="text-[15px] text-slate-400">點擊面板名稱可展開完整內容</span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {firstBatchPanels.map((panel) => {
@@ -2118,10 +2118,10 @@ export default function SoulDashboard() {
                   </button>
                   {isExpanded && (
                     <>
-                      <p className="text-[11px] text-slate-400 mt-3 mb-2">{panel.core_question}</p>
+                      <p className="text-[13px] text-slate-400 mt-3 mb-2">{panel.core_question}</p>
                       <div className="mt-3 space-y-1.5">
                         {flattenPanelData(panel.data).map((item, idx) => (
-                          <div key={`${panel.panel_id}-${item.key}-${idx}`} className="grid grid-cols-[120px_1fr] gap-2 text-[11px]">
+                          <div key={`${panel.panel_id}-${item.key}-${idx}`} className="grid grid-cols-[140px_1fr] gap-2 text-[13px]">
                             <span className="text-slate-500">{item.key}</span>
                             <span className="text-slate-200 break-words">{item.value}</span>
                           </div>
