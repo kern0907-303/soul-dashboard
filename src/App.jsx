@@ -15,6 +15,7 @@ import html2canvas from 'html2canvas';
 // 0. 系統設定
 // ==========================================
 const API_BASE = (import.meta.env.VITE_API_BASE || "/api").replace(/\/+$/, "");
+const CHART_FONT_SCALE = 1.2;
 
 // ==========================================
 // 1. 全域變數 & 工具函式
@@ -2003,7 +2004,7 @@ export default function SoulDashboard() {
                     const opacity = entry.hasFlowBuff ? 1 : (entry.intensity === 'high' ? 0.85 : entry.intensity === 'mid' ? 0.55 : 0.3);
                     return <Cell key={`cell-${index}`} fill={fill} stroke={stroke} opacity={opacity} style={{ filter: glow, transition: 'all 0.8s ease' }} />;
                   })}</Pie><RechartsTooltip content={<CustomTooltip />} /></PieChart></ResponsiveContainer><div className="absolute text-center pointer-events-none"><div className="text-[10px] text-cyan-500/50">陽性</div><div className="text-[8px] text-slate-600">核心</div></div></div>
-            <div className="w-1/3 flex items-center"><ul className="space-y-2 text-[11px] text-slate-300">{data.solarWheel.map((item, i) => (<li key={i} className="flex items-center justify-between"><div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full transition-all duration-700" style={{backgroundColor: item.hasFlowBuff ? '#22d3ee' : item.fill, boxShadow: item.hasFlowBuff ? '0 0 8px #22d3ee, 0 0 3px #fff' : `0 0 3px ${item.fill}`, opacity: item.hasFlowBuff ? 1 : (item.intensity === 'high' ? 0.85 : item.intensity === 'mid' ? 0.55 : 0.3)}} title={`${item.name} - 能量分數: ${item.score}`}></span>{item.name}</div>{item.hasFlowBuff && (<motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-orange-500 flex items-center gap-1" title="流年加持中 - 該領域受到流年能量加持"><Flame size={12} className="fill-orange-500 animate-pulse" /></motion.div>)}</li>))}</ul></div>
+            <div className="w-1/3 flex items-center"><ul className="space-y-2 text-[13px] text-slate-300">{data.solarWheel.map((item, i) => (<li key={i} className="flex items-center justify-between"><div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full transition-all duration-700" style={{backgroundColor: item.hasFlowBuff ? '#22d3ee' : item.fill, boxShadow: item.hasFlowBuff ? '0 0 8px #22d3ee, 0 0 3px #fff' : `0 0 3px ${item.fill}`, opacity: item.hasFlowBuff ? 1 : (item.intensity === 'high' ? 0.85 : item.intensity === 'mid' ? 0.55 : 0.3)}} title={`${item.name} - 能量分數: ${item.score}`}></span>{item.name}</div>{item.hasFlowBuff && (<motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-orange-500 flex items-center gap-1" title="流年加持中 - 該領域受到流年能量加持"><Flame size={12} className="fill-orange-500 animate-pulse" /></motion.div>)}</li>))}</ul></div>
           </div>
         </motion.div>
 
@@ -2058,7 +2059,7 @@ export default function SoulDashboard() {
                const CustomTick = ({ payload, x, y, textAnchor }) => {
                  const item = radarData.find(d => d.subject === payload?.value);
                  return (
-                   <text x={x} y={y} textAnchor={textAnchor} fill={item?.hasFlowBuff ? '#fb923c' : '#c084fc'} fontSize={11} fontWeight="bold" style={{ transition: 'fill 0.8s ease' }}>
+                   <text x={x} y={y} textAnchor={textAnchor} fill={item?.hasFlowBuff ? '#fb923c' : '#c084fc'} fontSize={Math.round(11 * CHART_FONT_SCALE)} fontWeight="bold" style={{ transition: 'fill 0.8s ease' }}>
                      {payload?.value}
                    </text>
                  );
