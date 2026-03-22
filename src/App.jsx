@@ -54,6 +54,14 @@ const cleanDateStr = (dateStr) => {
     return `${year}年${month.padStart(2, "0")}月${day.padStart(2, "0")}日`;
 };
 
+const formatBirthTimeDisplay = (timeStr) => {
+  if (!timeStr || timeStr === "--:--") return "";
+  const match = String(timeStr).match(/(\d{1,2}):(\d{1,2})/);
+  if (!match) return "";
+  const [, hour, minute] = match;
+  return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`;
+};
+
 const DEFAULT_BIRTHDAY_INPUT = { year: 1990, month: 1, day: 1, hour: "", minute: "" };
 
 const DEFAULT_DATA = {
@@ -2320,13 +2328,21 @@ export default function SoulDashboard() {
           <motion.div animate={{ rotate: 360 }} transition={{ duration: 60, repeat: Infinity, ease: "linear" }} className="absolute w-[360px] h-[360px] sm:w-[500px] sm:h-[500px] border border-slate-800/50 rounded-full border-dashed pointer-events-none"></motion.div>
           <motion.div className="relative z-10 flex flex-col items-center gap-6 sm:gap-8 w-full">
             <div className="glass-card w-full max-w-[320px] rounded-2xl p-3 backdrop-blur-md flex flex-col items-center gap-2 shadow-lg shadow-cyan-900/10 mb-2">
+                {(() => {
+                  const birthTimeLabel = formatBirthTimeDisplay(data.birthTimeDisplay);
+                  return (
+                    <>
                 <div className="flex items-center gap-2 text-xs text-slate-400 mb-1 border-b border-slate-700/50 w-full justify-center pb-1"><Calendar size={12} title="出生日期資訊" /> 生日資訊</div>
                 <div className="w-full grid grid-cols-[40px_1fr] gap-2 px-2 items-center"><span className="text-[10px] text-cyan-500/70 text-left">陽曆</span><span className="text-sm font-bold text-white font-mono text-right" title="陽曆出生日期">{cleanDateStr(data.solarDateStr)}</span></div>
                 <div className="w-full grid grid-cols-[40px_1fr] gap-2 px-2 items-center"><span className="text-[10px] text-purple-500/70 text-left">陰曆</span><span className="text-sm font-bold text-slate-300 font-mono text-right" title="陰曆出生日期">{cleanDateStr(data.lunarDateStr)}</span></div>
+                {birthTimeLabel && <div className="w-full grid grid-cols-[40px_1fr] gap-2 px-2 items-center"><span className="text-[10px] text-slate-400 text-left">時間</span><span className="text-sm font-bold text-slate-200 font-mono text-right" title="出生時間">{birthTimeLabel}</span></div>}
                 <div className="w-full grid grid-cols-[40px_1fr] gap-2 px-2 items-center"><span className="text-[10px] text-cyan-500/70 text-left">+時</span><span className="text-sm font-bold text-cyan-300 font-mono text-right" title="陽曆出生時數縮減">{formatRawNum(data.solarBirthHour)}</span></div>
                 <div className="w-full grid grid-cols-[40px_1fr] gap-2 px-2 items-center"><span className="text-[10px] text-cyan-500/70 text-left">+分</span><span className="text-sm font-bold text-cyan-300 font-mono text-right" title="陽曆出生分鐘縮減">{formatRawNum(data.solarBirthMinute)}</span></div>
                 <div className="w-full grid grid-cols-[40px_1fr] gap-2 px-2 items-center"><span className="text-[10px] text-purple-500/70 text-left">-時</span><span className="text-sm font-bold text-purple-300 font-mono text-right" title="陰曆出生時數縮減">{formatRawNum(data.lunarBirthHour)}</span></div>
                 <div className="w-full grid grid-cols-[40px_1fr] gap-2 px-2 items-center"><span className="text-[10px] text-purple-500/70 text-left">-分</span><span className="text-sm font-bold text-purple-300 font-mono text-right" title="陰曆出生分鐘縮減">{formatRawNum(data.lunarBirthMinute)}</span></div>
+                    </>
+                  );
+                })()}
             </div>
             <div className="relative group cursor-pointer" onClick={() => setShowInputModal(true)}>
               <div className="absolute -inset-4 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-full blur-xl group-hover:opacity-100 transition-opacity duration-500 opacity-60"></div>
