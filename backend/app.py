@@ -42,6 +42,30 @@ CREATE TABLE IF NOT EXISTS login_events (
   created_at TEXT NOT NULL,
   FOREIGN KEY(user_id) REFERENCES users(id)
 );
+
+CREATE TABLE IF NOT EXISTS birth_records (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT,
+  birth_year INTEGER NOT NULL,
+  birth_month INTEGER NOT NULL,
+  birth_day INTEGER NOT NULL,
+  birth_hour INTEGER,
+  birth_minute INTEGER,
+  target_year INTEGER NOT NULL,
+  solar_date_str TEXT,
+  lunar_date_str TEXT,
+  main_solar TEXT,
+  main_solar_lv TEXT,
+  main_lunar TEXT,
+  main_lunar_lv TEXT,
+  birth_hour_path TEXT,
+  birth_hour_num INTEGER,
+  birth_minute_path TEXT,
+  birth_minute_num INTEGER,
+  payload_json TEXT,
+  result_json TEXT,
+  created_at TEXT NOT NULL
+ );
 """
 CHINA_ADMIN_KEY = os.environ.get("CHINA_ADMIN_KEY", "change-me")
 CHINA_SESSION_DAYS = int(os.environ.get("CHINA_SESSION_DAYS", "30"))
@@ -220,20 +244,29 @@ def sum_digits(n):
 
 def calc_path(input_val, sign=""):
     """
-    計算路徑 (支援三階層顯示，例如 29 -> 11 -> 2)
-    回傳格式: "+29/11/2" 或 "-12/3" (保留符號，不補零)
+    計算完整縮減路徑。
+    回傳格式:
+    "+29/11/2"、"-19/10/1"、"+05/5"、"-09/9"
     """
     s1 = sum(int(d) for d in str(input_val)) # 第一層總和
-    
-    path = f"{sign}{s1}"
+
+    parts = [s1]
     current = s1
-    
-    # 迴圈縮減，並記錄過程
+
     while current > 9:
         current = sum(int(d) for d in str(current))
-        path += f"/{current}"
-        
-    return path, current
+        parts.append(current)
+
+    if len(parts) == 1:
+        parts.append(current)
+
+    formatted = [str(parts[0]).zfill(2)] + [str(part) for part in parts[1:]]
+    return f"{sign}{'/'.join(formatted)}", current
+
+def calc_optional_path(input_val, sign=""):
+    if input_val is None:
+        return "-", 0
+    return calc_path(input_val, sign)
 
 def get_innate_info(birthday_str):
     innate_digits = [int(d) for d in birthday_str]
@@ -307,6 +340,14 @@ def china_db():
 def china_init_db():
     with china_db() as conn:
         conn.executescript(CHINA_SCHEMA_SQL)
+
+
+def json_dumps_ensure_ascii(data):
+    try:
+        import json
+        return json.dumps(data, ensure_ascii=False)
+    except Exception:
+        return "{}"
 
 
 def china_get_bearer_token():
@@ -409,6 +450,10 @@ def calculate():
     birth_year = int(data.get('year'))
     birth_month = int(data.get('month'))
     birth_day = int(data.get('day'))
+    birth_hour_raw = data.get('hour')
+    birth_minute_raw = data.get('minute')
+    birth_hour = int(birth_hour_raw) if birth_hour_raw not in (None, "", "null") else None
+    birth_minute = int(birth_minute_raw) if birth_minute_raw not in (None, "", "null") else None
     target_year = int(data.get('targetYear', datetime.date.today().year))
     
     today = datetime.date.today()
@@ -417,6 +462,8 @@ def calculate():
     curr_d = today.day
     
     bd_str = f"{birth_year}{birth_month:02d}{birth_day:02d}"
+    birth_hour_path, birth_hour_num = calc_optional_path(birth_hour, "+")
+    birth_minute_path, birth_minute_num = calc_optional_path(birth_minute, "+")
     
     solar_path, solar_lv_str, solar_main, solar_digits, solar_lv, solar_counts = calc_soul_level_full(bd_str, "+")
     solar_flows = calc_flows_detailed(birth_year, birth_month, birth_day, curr_y, curr_m, curr_d, "+")
@@ -476,6 +523,11 @@ def calculate():
     response_data = {
         "year": curr_y,
         "solarDateStr": f"陽曆 {birth_year}年 {birth_month}月 {birth_day}日", "lunarDateStr": lunar_date_str,
+        "birthHour": birth_hour_path,
+        "birthHourNum": birth_hour_num,
+        "birthMinute": birth_minute_path,
+        "birthMinuteNum": birth_minute_num,
+        "birthTimeDisplay": f"{birth_hour:02d}:{birth_minute:02d}" if birth_hour is not None and birth_minute is not None else "--:--",
         "todayDateStr": f"{today.year}/{today.month}/{today.day}", "lunarTodayStr": lunar_today_str,
         "solar": solar_flows['year']['path'], "solarKw": "流年",
         "flowSolarNum": str(solar_flows['year']['num']),
@@ -525,6 +577,69 @@ def calculate_lifecycle():
             "solarNum": s_flows['year']['num'], "lunarNum": l_flow_num,
         })
     return jsonify(lifecycle_data)
+
+
+@app.route('/records', methods=['POST'])
+@app.route('/api/records', methods=['POST'])
+def create_birth_record():
+    data = request.json or {}
+    birth = data.get("birth") or {}
+    result = data.get("result") or {}
+
+    try:
+        birth_year = int(birth.get("year"))
+        birth_month = int(birth.get("month"))
+        birth_day = int(birth.get("day"))
+    except (TypeError, ValueError):
+        return jsonify({"ok": False, "error": "invalid birth date"}), 400
+
+    birth_hour_raw = birth.get("hour")
+    birth_minute_raw = birth.get("minute")
+    birth_hour = int(birth_hour_raw) if birth_hour_raw not in (None, "", "null") else None
+    birth_minute = int(birth_minute_raw) if birth_minute_raw not in (None, "", "null") else None
+    target_year = int(data.get("targetYear", datetime.date.today().year))
+    name = str(data.get("name", "")).strip() or None
+    now = china_now_iso()
+
+    with china_db() as conn:
+        cur = conn.execute(
+            """
+            INSERT INTO birth_records (
+              name, birth_year, birth_month, birth_day, birth_hour, birth_minute, target_year,
+              solar_date_str, lunar_date_str, main_solar, main_solar_lv, main_lunar, main_lunar_lv,
+              birth_hour_path, birth_hour_num, birth_minute_path, birth_minute_num,
+              payload_json, result_json, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                name, birth_year, birth_month, birth_day, birth_hour, birth_minute, target_year,
+                result.get("solarDateStr"), result.get("lunarDateStr"), result.get("mainSolar"), result.get("mainSolarLv"),
+                result.get("mainLunar"), result.get("mainLunarLv"), result.get("birthHour"), result.get("birthHourNum"),
+                result.get("birthMinute"), result.get("birthMinuteNum"),
+                json_dumps_ensure_ascii(data), json_dumps_ensure_ascii(result), now
+            ),
+        )
+    return jsonify({"ok": True, "id": cur.lastrowid})
+
+
+@app.route('/admin/birth-records', methods=['GET'])
+@app.route('/api/admin/birth-records', methods=['GET'])
+def admin_birth_records():
+    if request.headers.get("X-Admin-Key", "") != CHINA_ADMIN_KEY:
+        return jsonify({"ok": False, "error": "forbidden"}), 403
+    with china_db() as conn:
+        rows = conn.execute(
+            """
+            SELECT
+              id, name, birth_year, birth_month, birth_day, birth_hour, birth_minute, target_year,
+              solar_date_str, lunar_date_str, main_solar, main_solar_lv, main_lunar, main_lunar_lv,
+              birth_hour_path, birth_hour_num, birth_minute_path, birth_minute_num, created_at
+            FROM birth_records
+            ORDER BY datetime(created_at) DESC, id DESC
+            LIMIT 1000
+            """
+        ).fetchall()
+    return jsonify({"ok": True, "items": [dict(r) for r in rows]})
 
 
 @app.route('/auth/login', methods=['POST'])
@@ -674,6 +789,17 @@ def china_admin_dashboard():
             LIMIT 500
             """
         ).fetchall()
+        birth_records = conn.execute(
+            """
+            SELECT
+              id, name, birth_year, birth_month, birth_day, birth_hour, birth_minute, target_year,
+              solar_date_str, lunar_date_str, main_solar, main_solar_lv, main_lunar, main_lunar_lv,
+              birth_hour_path, birth_hour_num, birth_minute_path, birth_minute_num, created_at
+            FROM birth_records
+            ORDER BY datetime(created_at) DESC, id DESC
+            LIMIT 1000
+            """
+        ).fetchall()
 
     user_rows = "".join(
         f"<tr><td>{u['id']}</td><td>{html.escape(u['name'] or '')}</td><td>{html.escape(u['phone'] or '')}</td>"
@@ -686,6 +812,18 @@ def china_admin_dashboard():
         f"<td>{html.escape(e['wechat_id'] or '')}</td><td>{html.escape(e['login_method'] or '')}</td>"
         f"<td>{html.escape(e['ip'] or '')}</td><td>{html.escape(e['created_at'] or '')}</td></tr>"
         for e in events
+    )
+    birth_rows = "".join(
+        f"<tr><td>{r['id']}</td><td>{html.escape(r['name'] or '')}</td>"
+        f"<td>{r['birth_year']}/{r['birth_month']}/{r['birth_day']}</td>"
+        f"<td>{'--' if r['birth_hour'] is None else str(r['birth_hour']).zfill(2)}:{'--' if r['birth_minute'] is None else str(r['birth_minute']).zfill(2)}</td>"
+        f"<td>{html.escape(str(r['target_year']))}</td>"
+        f"<td>{html.escape(r['main_solar'] or '')} (Lv {html.escape(r['main_solar_lv'] or '-')})</td>"
+        f"<td>{html.escape(r['main_lunar'] or '')} (Lv {html.escape(r['main_lunar_lv'] or '-')})</td>"
+        f"<td>{html.escape(r['birth_hour_path'] or '-')}</td>"
+        f"<td>{html.escape(r['birth_minute_path'] or '-')}</td>"
+        f"<td>{html.escape(r['created_at'] or '')}</td></tr>"
+        for r in birth_records
     )
 
     page = f"""
@@ -711,7 +849,7 @@ def china_admin_dashboard():
   <div class="wrap">
     <div class="card">
       <h1>生命藍圖後台資料庫</h1>
-      <div class="meta">目前使用者：{len(users)} | 登入紀錄：{len(events)} | 重新整理可更新</div>
+      <div class="meta">目前使用者：{len(users)} | 登入紀錄：{len(events)} | 掃描紀錄：{len(birth_records)} | 重新整理可更新</div>
     </div>
     <div class="card">
       <h2>使用者清單</h2>
@@ -725,6 +863,13 @@ def china_admin_dashboard():
       <table>
         <thead><tr><th>ID</th><th>姓名</th><th>電話</th><th>微信號</th><th>方式</th><th>IP</th><th>時間</th></tr></thead>
         <tbody>{event_rows}</tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h2>生命藍圖輸入紀錄</h2>
+      <table>
+        <thead><tr><th>ID</th><th>姓名</th><th>生日</th><th>出生時間</th><th>目標年</th><th>陽曆主命數</th><th>陰曆主命數</th><th>時</th><th>分</th><th>建立時間</th></tr></thead>
+        <tbody>{birth_rows}</tbody>
       </table>
     </div>
   </div>

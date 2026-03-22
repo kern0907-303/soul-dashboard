@@ -50,9 +50,14 @@ const cleanDateStr = (dateStr) => {
     return dateStr.replace("陽曆 ", "").replace("陰曆 ", "");
 };
 
+const DEFAULT_BIRTHDAY_INPUT = { year: 1990, month: 1, day: 1, hour: "", minute: "" };
+
 const DEFAULT_DATA = {
   year: 2026,
   solarDateStr: "----年--月--日", lunarDateStr: "----年--月--日",
+  birthHour: "-", birthHourNum: 0,
+  birthMinute: "-", birthMinuteNum: 0,
+  birthTimeDisplay: "--:--",
   todayDateStr: "----/--/--", lunarTodayStr: "----/--/--",
   solar: "--", solarKw: "等待計算", flowSolarLv: "-", flowSolarNum: 0,
   solarMonth: "--", solarMonthNum: 0, solarDay: "--", solarDayNum: 0,
@@ -109,7 +114,31 @@ const buildReducedPath = (num) => {
       .reduce((sum, d) => sum + Number(d), 0);
     parts.push(current);
   }
-  return parts.join("/");
+  if (parts.length === 1) {
+    parts.push(current);
+  }
+  return parts.map((value, index) => index === 0 ? String(value).padStart(2, "0") : String(value)).join("/");
+};
+
+const parseNumberOrEmpty = (value) => {
+  if (value === "" || value === null || value === undefined) return "";
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : "";
+};
+
+const normalizeBirthdayInput = (input = {}) => ({
+  year: Number(input.year) || DEFAULT_BIRTHDAY_INPUT.year,
+  month: Number(input.month) || DEFAULT_BIRTHDAY_INPUT.month,
+  day: Number(input.day) || DEFAULT_BIRTHDAY_INPUT.day,
+  hour: parseNumberOrEmpty(input.hour),
+  minute: parseNumberOrEmpty(input.minute)
+});
+
+const formatBirthTimeLabel = (birthday = {}) => {
+  if (birthday.hour === "" || birthday.minute === "" || birthday.hour === null || birthday.minute === null || birthday.hour === undefined || birthday.minute === undefined) {
+    return "--:--";
+  }
+  return `${String(Number(birthday.hour)).padStart(2, "0")}:${String(Number(birthday.minute)).padStart(2, "0")}`;
 };
 
 const getThinkingTendencyBySolar = (num) => {
@@ -270,11 +299,15 @@ const buildFlowPathByYmdDigits = (year, month, day, sign = "+") => {
   if (!digits.length) return { path: "--/--", total: 0, main: 0, code };
   let total = digits.reduce((s, n) => s + n, 0);
   let current = total;
-  let path = `${sign}${total}`;
+  const parts = [total];
   while (current > 9) {
     current = String(current).split("").reduce((s, d) => s + Number(d), 0);
-    path += `/${current}`;
+    parts.push(current);
   }
+  if (parts.length === 1) {
+    parts.push(current);
+  }
+  const path = `${sign}${parts.map((value, index) => index === 0 ? String(value).padStart(2, "0") : String(value)).join("/")}`;
   return { path, total, main: current, code };
 };
 
@@ -1858,7 +1891,7 @@ export default function SoulDashboard() {
   const [loadError, setLoadError] = useState("");
   const [showInputModal, setShowInputModal] = useState(true);
   const [userName, setUserName] = useState("");
-  const [birthdayInput, setBirthdayInput] = useState({ year: 1990, month: 1, day: 1 });
+  const [birthdayInput, setBirthdayInput] = useState(DEFAULT_BIRTHDAY_INPUT);
   const [history, setHistory] = useState([]);
   
   const [showOverview, setShowOverview] = useState(false);
@@ -1872,12 +1905,19 @@ export default function SoulDashboard() {
 
   useEffect(() => {
     const savedHistory = localStorage.getItem('soulHistory');
-    if (savedHistory) setHistory(JSON.parse(savedHistory));
+    if (savedHistory) {
+      const parsedHistory = JSON.parse(savedHistory).map((item) => ({
+        ...item,
+        birthday: normalizeBirthdayInput(item.birthday),
+        timeStr: item.timeStr || formatBirthTimeLabel(item.birthday || {})
+      }));
+      setHistory(parsedHistory);
+    }
     const savedUser = localStorage.getItem('soulUser');
     if (savedUser) {
         const parsed = JSON.parse(savedUser);
         setUserName(parsed.name || "");
-        setBirthdayInput(parsed.birthday || { year: 1990, month: 1, day: 1 });
+        setBirthdayInput(normalizeBirthdayInput(parsed.birthday || DEFAULT_BIRTHDAY_INPUT));
     }
   }, []);
 
@@ -1915,10 +1955,35 @@ export default function SoulDashboard() {
   };
 
   const calculateForPartner = async (bday) => {
+      const normalized = normalizeBirthdayInput(bday);
       return await requestCalculateWithRetry(
-        { year: bday.year, month: bday.month, day: bday.day, targetYear: year },
+        { year: normalized.year, month: normalized.month, day: normalized.day, hour: normalized.hour === "" ? null : normalized.hour, minute: normalized.minute === "" ? null : normalized.minute, targetYear: year },
         { retries: 4, timeoutMs: 90000 }
       );
+  };
+
+  const saveBirthRecord = async (result, activeBirthday) => {
+    try {
+      const normalized = normalizeBirthdayInput(activeBirthday);
+      await fetch(`${API_BASE}/records`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: userName,
+          birth: {
+            year: normalized.year,
+            month: normalized.month,
+            day: normalized.day,
+            hour: normalized.hour === "" ? null : normalized.hour,
+            minute: normalized.minute === "" ? null : normalized.minute
+          },
+          targetYear: year,
+          result
+        })
+      });
+    } catch (error) {
+      console.error("掃描紀錄儲存失敗", error);
+    }
   };
 
   const fetchData = async () => {
@@ -1930,6 +1995,7 @@ export default function SoulDashboard() {
       const result = await calculateForPartner(birthdayInput);
       const corrected = correctFlowSoulLevels(result, birthdayInput, year);
       setData({...corrected, name: userName});
+      saveBirthRecord(corrected, birthdayInput);
     } catch (error) {
       console.error("連線失敗", error);
       setLoadError("啟動計算失敗：後端喚醒中或連線不穩，請稍後重試。");
@@ -1943,11 +2009,25 @@ export default function SoulDashboard() {
   useEffect(() => { if (!showInputModal) fetchData(); }, [year, showInputModal]);
 
   const handleStartScan = () => {
-    const userProfile = { name: userName, birthday: birthdayInput };
+    const normalized = normalizeBirthdayInput(birthdayInput);
+    const userProfile = { name: userName, birthday: normalized };
     localStorage.setItem('soulUser', JSON.stringify(userProfile));
-    const newHistoryEntry = { id: Date.now(), name: userName || "未命名", birthday: birthdayInput, dateStr: `${birthdayInput.year}/${birthdayInput.month}/${birthdayInput.day}` };
+    const newHistoryEntry = {
+      id: Date.now(),
+      name: userName || "未命名",
+      birthday: normalized,
+      dateStr: `${normalized.year}/${normalized.month}/${normalized.day}`,
+      timeStr: formatBirthTimeLabel(normalized)
+    };
     setHistory(prev => {
-        const filtered = prev.filter(h => !(h.name === newHistoryEntry.name && h.birthday.year === newHistoryEntry.birthday.year));
+        const filtered = prev.filter(h => !(
+          h.name === newHistoryEntry.name &&
+          h.birthday.year === newHistoryEntry.birthday.year &&
+          h.birthday.month === newHistoryEntry.birthday.month &&
+          h.birthday.day === newHistoryEntry.birthday.day &&
+          h.birthday.hour === newHistoryEntry.birthday.hour &&
+          h.birthday.minute === newHistoryEntry.birthday.minute
+        ));
         const updated = [newHistoryEntry, ...filtered].slice(0, 20); 
         localStorage.setItem('soulHistory', JSON.stringify(updated));
         return updated;
@@ -2029,23 +2109,49 @@ export default function SoulDashboard() {
                     <input
                       type="number"
                       value={birthdayInput.year}
-                      onChange={(e) => setBirthdayInput({ ...birthdayInput, year: parseInt(e.target.value) })}
+                      onChange={(e) => setBirthdayInput({ ...birthdayInput, year: Number(e.target.value) || "" })}
                       className="rounded-2xl border border-slate-700 bg-slate-950/90 px-4 py-3 text-center text-white"
                       title="出生年份"
                     />
                     <input
                       type="number"
                       value={birthdayInput.month}
-                      onChange={(e) => setBirthdayInput({ ...birthdayInput, month: parseInt(e.target.value) })}
+                      onChange={(e) => setBirthdayInput({ ...birthdayInput, month: Number(e.target.value) || "" })}
                       className="rounded-2xl border border-slate-700 bg-slate-950/90 px-4 py-3 text-center text-white"
                       title="出生月份"
                     />
                     <input
                       type="number"
                       value={birthdayInput.day}
-                      onChange={(e) => setBirthdayInput({ ...birthdayInput, day: parseInt(e.target.value) })}
+                      onChange={(e) => setBirthdayInput({ ...birthdayInput, day: Number(e.target.value) || "" })}
                       className="rounded-2xl border border-slate-700 bg-slate-950/90 px-4 py-3 text-center text-white"
                       title="出生日期"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <span className="block text-xs font-semibold tracking-[0.2em] text-slate-400 mb-2">出生時間</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input
+                      type="number"
+                      min="0"
+                      max="23"
+                      value={birthdayInput.hour}
+                      onChange={(e) => setBirthdayInput({ ...birthdayInput, hour: parseNumberOrEmpty(e.target.value) })}
+                      className="rounded-2xl border border-slate-700 bg-slate-950/90 px-4 py-3 text-center text-white"
+                      title="出生小時"
+                      placeholder="時"
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      max="59"
+                      value={birthdayInput.minute}
+                      onChange={(e) => setBirthdayInput({ ...birthdayInput, minute: parseNumberOrEmpty(e.target.value) })}
+                      className="rounded-2xl border border-slate-700 bg-slate-950/90 px-4 py-3 text-center text-white"
+                      title="出生分鐘"
+                      placeholder="分"
                     />
                   </div>
                 </div>
@@ -2075,13 +2181,13 @@ export default function SoulDashboard() {
                       <button
                         key={h.id}
                         type="button"
-                        onClick={() => { setUserName(h.name); setBirthdayInput(h.birthday); }}
+                        onClick={() => { setUserName(h.name); setBirthdayInput(normalizeBirthdayInput(h.birthday)); }}
                         className="w-full rounded-xl px-3 py-2.5 text-left transition hover:bg-slate-800/80"
                         title={`載入 ${h.name} 的資料`}
                       >
                         <div className="flex items-center justify-between gap-3">
                           <span className="font-medium text-slate-200 truncate">{h.name}</span>
-                          <span className="text-xs text-slate-500 shrink-0">{h.dateStr}</span>
+                          <span className="text-xs text-slate-500 shrink-0">{h.dateStr} {h.timeStr || formatBirthTimeLabel(h.birthday)}</span>
                         </div>
                       </button>
                     ))
@@ -2210,6 +2316,8 @@ export default function SoulDashboard() {
                 <div className="flex items-center gap-2 text-xs text-slate-400 mb-1 border-b border-slate-700/50 w-full justify-center pb-1"><Calendar size={12} title="出生日期資訊" /> 生日資訊</div>
                 <div className="w-full grid grid-cols-[40px_1fr] gap-2 px-2 items-center"><span className="text-[10px] text-cyan-500/70 text-left">陽曆</span><span className="text-sm font-bold text-white font-mono text-right" title="陽曆出生日期">{cleanDateStr(data.solarDateStr)}</span></div>
                 <div className="w-full grid grid-cols-[40px_1fr] gap-2 px-2 items-center"><span className="text-[10px] text-purple-500/70 text-left">陰曆</span><span className="text-sm font-bold text-slate-300 font-mono text-right" title="陰曆出生日期">{cleanDateStr(data.lunarDateStr)}</span></div>
+                <div className="w-full grid grid-cols-[40px_1fr] gap-2 px-2 items-center"><span className="text-[10px] text-amber-400/70 text-left">時</span><span className="text-sm font-bold text-amber-200 font-mono text-right" title="出生時數縮減">{formatRawNum(data.birthHour)}</span></div>
+                <div className="w-full grid grid-cols-[40px_1fr] gap-2 px-2 items-center"><span className="text-[10px] text-emerald-400/70 text-left">分</span><span className="text-sm font-bold text-emerald-200 font-mono text-right" title="出生分鐘縮減">{formatRawNum(data.birthMinute)}</span></div>
             </div>
             <div className="relative group cursor-pointer" onClick={() => setShowInputModal(true)}>
               <div className="absolute -inset-4 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-full blur-xl group-hover:opacity-100 transition-opacity duration-500 opacity-60"></div>
