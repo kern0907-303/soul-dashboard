@@ -47,7 +47,11 @@ const formatRawNum = (rawStr) => {
 
 const cleanDateStr = (dateStr) => {
     if (!dateStr) return "----";
-    return dateStr.replace("陽曆 ", "").replace("陰曆 ", "");
+    const cleaned = dateStr.replace("陽曆 ", "").replace("陰曆 ", "");
+    const match = cleaned.match(/(\d{3,4})\D+(\d{1,2})\D+(\d{1,2})/);
+    if (!match) return cleaned;
+    const [, year, month, day] = match;
+    return `${year}年${month.padStart(2, "0")}月${day.padStart(2, "0")}日`;
 };
 
 const DEFAULT_BIRTHDAY_INPUT = { year: 1990, month: 1, day: 1, hour: "", minute: "" };
