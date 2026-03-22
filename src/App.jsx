@@ -1717,9 +1717,9 @@ const ResonanceModal = ({ isOpen, onClose, myData, history, onCalculate, partner
                 <button onClick={onClose} className="modal-close" title="關閉視窗"><X size={20} /></button>
             </div>
             
-            <div className="w-full max-w-5xl h-full flex flex-col md:flex-row gap-4 items-stretch overflow-y-auto md:overflow-hidden pb-4">
+            <div className="w-full max-w-5xl flex flex-col gap-4 overflow-y-auto pb-4 md:grid md:grid-cols-[280px_minmax(360px,1fr)_280px] md:items-stretch md:overflow-hidden">
                 <div className="w-full overflow-x-auto md:overflow-visible">
-                    <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 flex flex-col items-center justify-center w-full md:w-1/4 min-w-[280px] md:min-w-0 shrink-0 mx-auto">
+                    <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 flex h-full flex-col items-center justify-center w-full min-w-[280px] md:min-w-0 mx-auto">
                         <div className="text-xs text-slate-500 mb-4">{myData.name || 'My'} Energy</div>
                         <div className="text-4xl font-bold text-cyan-400 font-mono mb-2" title="我的陽曆主命數">{formatRawNum(myData.mainSolar)}</div>
                         <div className="text-2xl font-bold text-purple-400 font-mono mb-6" title="我的陰曆主命數">{formatRawNum(myData.mainLunar)}</div>
@@ -1728,14 +1728,14 @@ const ResonanceModal = ({ isOpen, onClose, myData, history, onCalculate, partner
                 </div>
                 
                 <div className="w-full overflow-x-auto md:overflow-visible">
-                    <div className="flex-1 flex items-center justify-center relative min-w-[320px] md:min-w-0 min-h-[320px] mx-auto">
+                    <div className="flex h-full items-center justify-center relative min-w-[320px] md:min-w-0 min-h-[320px] md:min-h-[360px] mx-auto">
                         {!partner ? (
                             <div className="text-center animate-pulse text-slate-500 z-10">
                                 <Users size={32} className="mx-auto mb-2" title="等待選擇共振對象" />
                                 <p className="text-sm">請在右側選擇共振對象...</p>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-3 grid-rows-3 gap-4 w-full max-w-md aspect-square relative z-10 p-4 min-w-[320px]">
+                            <div className="grid grid-cols-3 grid-rows-3 gap-4 w-full max-w-md aspect-square relative z-10 p-4 min-w-[320px] md:max-w-[420px]">
                                 <div className="col-start-2 row-start-1 bg-gradient-to-b from-fuchsia-950/50 to-slate-900/50 border border-fuchsia-500/50 rounded-xl flex flex-col items-center justify-center p-2 shadow-[0_0_15px_rgba(232,79,255,0.2)]" title="雙方陽曆能量共鳴">
                                     <div className="text-[10px] text-fuchsia-300 mb-1">++ (陽陽共鳴)</div>
                                     <div className="text-4xl font-bold text-white">{calcRelationNum(myData.mainSolarNum, partner.mainSolarNum)}</div>
@@ -1769,7 +1769,7 @@ const ResonanceModal = ({ isOpen, onClose, myData, history, onCalculate, partner
                 </div>
 
                 <div className="w-full overflow-x-auto md:overflow-visible">
-                    <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 flex flex-col items-center relative w-full md:w-1/4 min-w-[280px] md:min-w-0 shrink-0 mx-auto">
+                    <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 flex h-full flex-col items-center relative w-full min-w-[280px] md:min-w-0 mx-auto">
                         {partner ? (
                             <div className="w-full h-full flex flex-col items-center justify-center">
                                 <div className="text-sm text-slate-500 mb-4">{partner.name} Energy</div>
@@ -1786,8 +1786,8 @@ const ResonanceModal = ({ isOpen, onClose, myData, history, onCalculate, partner
                                         <div className="text-center py-10 opacity-50"><p className="text-sm text-slate-600">無其他紀錄</p><p className="text-xs text-slate-700 mt-2">請先關閉視窗<br/>掃描第二位使用者的命盤</p></div>
                                     ) : (
                                         history.filter(h => h.name !== myData.name).map(h => (
-                                            <button key={h.id} onClick={() => { onCalculate(h.birthday).then(res => { setPartner({ ...h, mainSolar: res.mainSolar, mainLunar: res.mainLunar, mainSolarNum: res.mainSolarNum, mainLunarNum: res.mainLunarNum }); }); }} className="p-3 bg-slate-800/50 border border-slate-700 hover:bg-cyan-900/30 hover:border-cyan-500/30 rounded-lg text-sm text-slate-300 text-left truncate transition flex justify-between items-center group shrink-0" title={`選擇 ${h.name} 進行共振分析`}>
-                                                <div className="flex flex-col"><span className="font-bold">{h.name}</span><span className="text-[10px] text-slate-500">{h.dateStr}</span></div>
+                                            <button key={h.id} onClick={() => { onCalculate(h.birthday).then(res => { setPartner({ ...h, mainSolar: res.mainSolar, mainLunar: res.mainLunar, mainSolarNum: res.mainSolarNum, mainLunarNum: res.mainLunarNum }); }); }} className="p-3 bg-slate-800/50 border border-slate-700 hover:bg-cyan-900/30 hover:border-cyan-500/30 rounded-lg text-sm text-slate-300 text-left transition flex justify-between items-center gap-3 group shrink-0" title={`選擇 ${h.name} 進行共振分析`}>
+                                                <div className="flex min-w-0 flex-col"><span className="font-bold truncate">{h.name}</span><span className="text-[10px] text-slate-500 truncate">{h.dateStr}</span></div>
                                                 <ChevronRight size={16} className="opacity-0 group-hover:opacity-100 text-cyan-400 transition-opacity" title="選擇此對象" />
                                             </button>
                                         ))
