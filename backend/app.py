@@ -268,6 +268,34 @@ def calc_optional_path(input_val, sign=""):
         return "-", 0
     return calc_path(input_val, sign)
 
+
+def sum_two_digit_value(value):
+    if value is None:
+        return 0
+    return sum(int(d) for d in str(int(value)).zfill(2))
+
+
+def calc_time_paths(seed_total, birth_hour, birth_minute, sign):
+    hour_path, hour_num = "-", 0
+    minute_path, minute_num = "-", 0
+    hour_total = seed_total
+
+    if birth_hour is not None:
+        hour_total = seed_total + sum_two_digit_value(birth_hour)
+        hour_path, hour_num = calc_path(hour_total, sign)
+
+    if birth_minute is not None:
+        minute_total = hour_total + sum_two_digit_value(birth_minute)
+        minute_path, minute_num = calc_path(minute_total, sign)
+
+    return {
+        "hourPath": hour_path,
+        "hourNum": hour_num,
+        "hourTotal": hour_total if birth_hour is not None else 0,
+        "minutePath": minute_path,
+        "minuteNum": minute_num
+    }
+
 def get_innate_info(birthday_str):
     innate_digits = [int(d) for d in birthday_str]
     digit_counts = {}
@@ -462,8 +490,8 @@ def calculate():
     curr_d = today.day
     
     bd_str = f"{birth_year}{birth_month:02d}{birth_day:02d}"
-    birth_hour_path, birth_hour_num = calc_optional_path(birth_hour, "+")
-    birth_minute_path, birth_minute_num = calc_optional_path(birth_minute, "+")
+    solar_seed_total = sum(int(d) for d in bd_str)
+    solar_time = calc_time_paths(solar_seed_total, birth_hour, birth_minute, "+")
     
     solar_path, solar_lv_str, solar_main, solar_digits, solar_lv, solar_counts = calc_soul_level_full(bd_str, "+")
     solar_flows = calc_flows_detailed(birth_year, birth_month, birth_day, curr_y, curr_m, curr_d, "+")
@@ -495,8 +523,10 @@ def calculate():
         ly, lm, ld = l_birth_struct['y'], l_birth_struct['m'], l_birth_struct['d']
         lunar_date_str = f"陰曆 {ly}年 {lm}月 {ld}日"
         l_bd_str = f"{ly}{lm:02d}{ld:02d}"
+        lunar_seed_total = sum(int(d) for d in l_bd_str)
         
         lunar_path, lunar_lv_str, lunar_main, lunar_digits, lunar_lv, lunar_counts = calc_soul_level_full(l_bd_str, "-")
+        lunar_time = calc_time_paths(lunar_seed_total, birth_hour, birth_minute, "-")
 
         if l_curr_struct:
             l_curr_y, l_curr_m, l_curr_d = l_curr_struct['y'], l_curr_struct['m'], l_curr_struct['d']
@@ -519,14 +549,25 @@ def calculate():
             lunar_radar.append({ "subject": rule['subject'], "A": score, "fullMark": 100, "hasFlowBuff": has_buff })
     else:
         lunar_radar = [{ "subject": '數據缺失', "A": 0, "fullMark": 100 }] * 5
+        lunar_time = {
+            "hourPath": "-",
+            "hourNum": 0,
+            "hourTotal": 0,
+            "minutePath": "-",
+            "minuteNum": 0
+        }
 
     response_data = {
         "year": curr_y,
         "solarDateStr": f"陽曆 {birth_year}年 {birth_month}月 {birth_day}日", "lunarDateStr": lunar_date_str,
-        "birthHour": birth_hour_path,
-        "birthHourNum": birth_hour_num,
-        "birthMinute": birth_minute_path,
-        "birthMinuteNum": birth_minute_num,
+        "solarBirthHour": solar_time["hourPath"],
+        "solarBirthHourNum": solar_time["hourNum"],
+        "solarBirthMinute": solar_time["minutePath"],
+        "solarBirthMinuteNum": solar_time["minuteNum"],
+        "lunarBirthHour": lunar_time["hourPath"],
+        "lunarBirthHourNum": lunar_time["hourNum"],
+        "lunarBirthMinute": lunar_time["minutePath"],
+        "lunarBirthMinuteNum": lunar_time["minuteNum"],
         "birthTimeDisplay": f"{birth_hour:02d}:{birth_minute:02d}" if birth_hour is not None and birth_minute is not None else "--:--",
         "todayDateStr": f"{today.year}/{today.month}/{today.day}", "lunarTodayStr": lunar_today_str,
         "solar": solar_flows['year']['path'], "solarKw": "流年",
@@ -614,8 +655,8 @@ def create_birth_record():
             (
                 name, birth_year, birth_month, birth_day, birth_hour, birth_minute, target_year,
                 result.get("solarDateStr"), result.get("lunarDateStr"), result.get("mainSolar"), result.get("mainSolarLv"),
-                result.get("mainLunar"), result.get("mainLunarLv"), result.get("birthHour"), result.get("birthHourNum"),
-                result.get("birthMinute"), result.get("birthMinuteNum"),
+                result.get("mainLunar"), result.get("mainLunarLv"), result.get("solarBirthHour"), result.get("solarBirthHourNum"),
+                result.get("solarBirthMinute"), result.get("solarBirthMinuteNum"),
                 json_dumps_ensure_ascii(data), json_dumps_ensure_ascii(result), now
             ),
         )

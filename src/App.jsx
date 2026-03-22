@@ -55,8 +55,10 @@ const DEFAULT_BIRTHDAY_INPUT = { year: 1990, month: 1, day: 1, hour: "", minute:
 const DEFAULT_DATA = {
   year: 2026,
   solarDateStr: "----年--月--日", lunarDateStr: "----年--月--日",
-  birthHour: "-", birthHourNum: 0,
-  birthMinute: "-", birthMinuteNum: 0,
+  solarBirthHour: "-", solarBirthHourNum: 0,
+  solarBirthMinute: "-", solarBirthMinuteNum: 0,
+  lunarBirthHour: "-", lunarBirthHourNum: 0,
+  lunarBirthMinute: "-", lunarBirthMinuteNum: 0,
   birthTimeDisplay: "--:--",
   todayDateStr: "----/--/--", lunarTodayStr: "----/--/--",
   solar: "--", solarKw: "等待計算", flowSolarLv: "-", flowSolarNum: 0,
@@ -2316,8 +2318,10 @@ export default function SoulDashboard() {
                 <div className="flex items-center gap-2 text-xs text-slate-400 mb-1 border-b border-slate-700/50 w-full justify-center pb-1"><Calendar size={12} title="出生日期資訊" /> 生日資訊</div>
                 <div className="w-full grid grid-cols-[40px_1fr] gap-2 px-2 items-center"><span className="text-[10px] text-cyan-500/70 text-left">陽曆</span><span className="text-sm font-bold text-white font-mono text-right" title="陽曆出生日期">{cleanDateStr(data.solarDateStr)}</span></div>
                 <div className="w-full grid grid-cols-[40px_1fr] gap-2 px-2 items-center"><span className="text-[10px] text-purple-500/70 text-left">陰曆</span><span className="text-sm font-bold text-slate-300 font-mono text-right" title="陰曆出生日期">{cleanDateStr(data.lunarDateStr)}</span></div>
-                <div className="w-full grid grid-cols-[40px_1fr] gap-2 px-2 items-center"><span className="text-[10px] text-amber-400/70 text-left">時</span><span className="text-sm font-bold text-amber-200 font-mono text-right" title="出生時數縮減">{formatRawNum(data.birthHour)}</span></div>
-                <div className="w-full grid grid-cols-[40px_1fr] gap-2 px-2 items-center"><span className="text-[10px] text-emerald-400/70 text-left">分</span><span className="text-sm font-bold text-emerald-200 font-mono text-right" title="出生分鐘縮減">{formatRawNum(data.birthMinute)}</span></div>
+                <div className="w-full grid grid-cols-[40px_1fr] gap-2 px-2 items-center"><span className="text-[10px] text-amber-400/70 text-left">+時</span><span className="text-sm font-bold text-amber-200 font-mono text-right" title="陽曆出生時數縮減">{formatRawNum(data.solarBirthHour)}</span></div>
+                <div className="w-full grid grid-cols-[40px_1fr] gap-2 px-2 items-center"><span className="text-[10px] text-emerald-400/70 text-left">+分</span><span className="text-sm font-bold text-emerald-200 font-mono text-right" title="陽曆出生分鐘縮減">{formatRawNum(data.solarBirthMinute)}</span></div>
+                <div className="w-full grid grid-cols-[40px_1fr] gap-2 px-2 items-center"><span className="text-[10px] text-fuchsia-400/70 text-left">-時</span><span className="text-sm font-bold text-fuchsia-200 font-mono text-right" title="陰曆出生時數縮減">{formatRawNum(data.lunarBirthHour)}</span></div>
+                <div className="w-full grid grid-cols-[40px_1fr] gap-2 px-2 items-center"><span className="text-[10px] text-sky-400/70 text-left">-分</span><span className="text-sm font-bold text-sky-200 font-mono text-right" title="陰曆出生分鐘縮減">{formatRawNum(data.lunarBirthMinute)}</span></div>
             </div>
             <div className="relative group cursor-pointer" onClick={() => setShowInputModal(true)}>
               <div className="absolute -inset-4 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-full blur-xl group-hover:opacity-100 transition-opacity duration-500 opacity-60"></div>
