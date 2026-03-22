@@ -2138,6 +2138,7 @@ export default function SoulDashboard() {
 
                 <div>
                   <span className="block text-xs font-semibold tracking-[0.2em] text-slate-400 mb-2">出生時間</span>
+                  <p className="mb-2 text-[11px] text-slate-500">請使用 24 小時制，例如凌晨 3 點填 `03`，下午 1 點填 `13`。</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <input
                       type="number"

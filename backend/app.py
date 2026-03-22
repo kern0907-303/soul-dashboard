@@ -269,6 +269,24 @@ def calc_optional_path(input_val, sign=""):
     return calc_path(input_val, sign)
 
 
+def calc_total_path(total, sign=""):
+    if total is None:
+        return "-", 0
+
+    parts = [int(total)]
+    current = int(total)
+
+    while current > 9:
+        current = sum(int(d) for d in str(current))
+        parts.append(current)
+
+    if len(parts) == 1:
+        parts.append(current)
+
+    formatted = [str(parts[0]).zfill(2)] + [str(part) for part in parts[1:]]
+    return f"{sign}{'/'.join(formatted)}", current
+
+
 def sum_two_digit_value(value):
     if value is None:
         return 0
@@ -282,11 +300,11 @@ def calc_time_paths(seed_total, birth_hour, birth_minute, sign):
 
     if birth_hour is not None:
         hour_total = seed_total + sum_two_digit_value(birth_hour)
-        hour_path, hour_num = calc_path(hour_total, sign)
+        hour_path, hour_num = calc_total_path(hour_total, sign)
 
     if birth_minute is not None:
         minute_total = hour_total + sum_two_digit_value(birth_minute)
-        minute_path, minute_num = calc_path(minute_total, sign)
+        minute_path, minute_num = calc_total_path(minute_total, sign)
 
     return {
         "hourPath": hour_path,
