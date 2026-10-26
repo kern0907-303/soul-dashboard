@@ -280,15 +280,38 @@ const toDigits = (code) =>
     .map((d) => Number(d))
     .filter((n) => Number.isFinite(n));
 
-const judgeSoulLevel = (total, mainNumber, innateSet, hasTriple) => {
-  const ant1 = total >= 10 ? Math.floor(total / 10) : 0;
-  const ant2 = total >= 10 ? total % 10 : total;
-  const mainIn = innateSet.has(mainNumber);
-  const antHits = (innateSet.has(ant1) ? 1 : 0) + (innateSet.has(ant2) ? 1 : 0);
-  if (!mainIn) return ({ 0: 1, 1: 2, 2: 3 }[antHits] || 1);
-  if (antHits === 0) return 4;
-  if (antHits === 1) return 5;
-  return hasTriple ? 6 : 7;
+// 生命功課等級：Excel 完整路徑規則（Erick 2026-10-26 裁定，與後端及 nas-annual-engine 相同）。
+// 後天數取路徑最後一層之前的所有數字（29/11/2 → 2、9、1、1），逐一比對八碼。
+// 主命數不在：全不在 1、部分 2、全部 3；主命數在：全不在 4、部分 5、全部 7，
+// 重複數（長路徑看路徑數字與主命數，短路徑看 1–9，不含 0）出現三次以上降為 6。
+const excelSoulLevelFromCode = (code) => {
+  const digits = toDigits(code);
+  if (!digits.length) return { level: 0, consequent: [], hits: [], main: 0, total: 0, mainIn: false };
+  const counts = {};
+  digits.forEach((d) => { counts[d] = (counts[d] || 0) + 1; });
+  const total = digits.reduce((sum, d) => sum + d, 0);
+  const parts = [total];
+  let current = total;
+  while (current > 9) {
+    current = String(current).split("").reduce((sum, d) => sum + Number(d), 0);
+    parts.push(current);
+  }
+  if (parts.length === 1) parts.push(current);
+  const pathParts = parts.map((value, index) => (index === 0 ? String(value).padStart(2, "0") : String(value)));
+  const consequent = pathParts.slice(0, -1).join("").split("").map(Number);
+  const hits = consequent.map((d) => counts[d] !== undefined);
+  const allPresent = hits.length > 0 && hits.every(Boolean);
+  const anyPresent = hits.some(Boolean);
+  const mainIn = counts[current] !== undefined;
+  let level;
+  if (!mainIn) level = allPresent ? 3 : anyPresent ? 2 : 1;
+  else if (!anyPresent) level = 4;
+  else if (!allPresent) level = 5;
+  else {
+    const pool = consequent.length > 2 ? new Set([...consequent, current]) : new Set([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    level = [...pool].some((d) => (counts[d] || 0) >= 3) ? 6 : 7;
+  }
+  return { level, consequent, hits, main: current, total, mainIn };
 };
 
 const parseLunarBirth = (s) => {
@@ -325,54 +348,35 @@ const buildFlowPathByYmdDigits = (year, month, day, sign = "+") => {
   return { path, total, main: current, code };
 };
 
-const calcFlowSoulLevelByBirth = (flowPath, birthCode) => {
-  const flow = parseFlowPath(flowPath);
-  const birthDigits = toDigits(birthCode);
-  if (!flow || !birthDigits.length) return "-";
-  const counts = {};
-  birthDigits.forEach((d) => { counts[d] = (counts[d] || 0) + 1; });
-  const hasTriple = Object.values(counts).some((c) => c >= 3);
-  const lv = judgeSoulLevel(flow.total, flow.main, new Set(birthDigits), hasTriple);
-  return String(lv);
+// 流年等級：以流年日期本身的八碼套同一規則（與 nas-annual-engine 的 flow-date 等級相同）。
+const calcFlowSoulLevelByCode = (flowCode) => {
+  const result = excelSoulLevelFromCode(flowCode);
+  return result.level ? String(result.level) : "-";
 };
 
-const calcFlowSoulLevelAudit = (flowPath, birthCode) => {
-  const flow = parseFlowPath(flowPath);
-  const birthDigits = toDigits(birthCode);
-  if (!flow || !birthDigits.length) {
+const calcFlowSoulLevelAudit = (flowPath, flowCode) => {
+  const result = excelSoulLevelFromCode(flowCode);
+  if (!flowPath || flowPath === "-" || !result.level) {
     return {
       flow_path: flowPath || "-",
-      birth_code: birthCode || "-",
+      flow_code: flowCode || "-",
       total: "-",
       main: "-",
-      ant1: "-",
-      ant2: "-",
-      ant_hits: "-",
-      main_in_birth: "-",
-      has_triple: "-",
+      consequent_digits: "-",
+      consequent_hits: "-",
+      main_in_flow_code: "-",
       level: "-"
     };
   }
-  const counts = {};
-  birthDigits.forEach((d) => { counts[d] = (counts[d] || 0) + 1; });
-  const hasTriple = Object.values(counts).some((c) => c >= 3);
-  const innateSet = new Set(birthDigits);
-  const ant1 = flow.total >= 10 ? Math.floor(flow.total / 10) : 0;
-  const ant2 = flow.total >= 10 ? flow.total % 10 : flow.total;
-  const antHits = (innateSet.has(ant1) ? 1 : 0) + (innateSet.has(ant2) ? 1 : 0);
-  const mainIn = innateSet.has(flow.main);
-  const lv = judgeSoulLevel(flow.total, flow.main, innateSet, hasTriple);
   return {
     flow_path: flowPath,
-    birth_code: birthCode,
-    total: flow.total,
-    main: flow.main,
-    ant1,
-    ant2,
-    ant_hits: antHits,
-    main_in_birth: mainIn ? "yes" : "no",
-    has_triple: hasTriple ? "yes" : "no",
-    level: String(lv)
+    flow_code: flowCode,
+    total: result.total,
+    main: result.main,
+    consequent_digits: result.consequent.join("、"),
+    consequent_hits: result.hits.filter(Boolean).length,
+    main_in_flow_code: result.mainIn ? "yes" : "no",
+    level: String(result.level)
   };
 };
 
@@ -382,8 +386,8 @@ const correctFlowSoulLevels = (result, birthdayInput, targetYear) => {
   const solarBirthMonth = Number(String(solarBirthCode).slice(-4, -2)) || Number(birthdayInput?.month) || 0;
   const solarBirthDay = Number(String(solarBirthCode).slice(-2)) || Number(birthdayInput?.day) || 0;
   const solarFlow = buildFlowPathByYmdDigits(targetYear, solarBirthMonth, solarBirthDay, "+");
-  const correctedSolarLv = calcFlowSoulLevelByBirth(solarFlow.path, solarBirthCode);
-  const solarAudit = calcFlowSoulLevelAudit(solarFlow.path, solarBirthCode);
+  const correctedSolarLv = calcFlowSoulLevelByCode(solarFlow.code);
+  const solarAudit = calcFlowSoulLevelAudit(solarFlow.path, solarFlow.code);
 
   let correctedLunarLv = "-";
   let lunarAudit = calcFlowSoulLevelAudit("-", "");
@@ -391,9 +395,8 @@ const correctFlowSoulLevels = (result, birthdayInput, targetYear) => {
   const lunarBirth = parseLunarBirth(result.lunarDateStr);
   if (lunarBirth) {
     lunarFlow = buildFlowPathByYmdDigits(targetYear, lunarBirth.month, lunarBirth.day, "-");
-    const lunarBirthCode = parseDateCode(result.lunarDateStr) || `${lunarBirth.year}${String(lunarBirth.month).padStart(2, "0")}${String(lunarBirth.day).padStart(2, "0")}`;
-    correctedLunarLv = calcFlowSoulLevelByBirth(lunarFlow.path, lunarBirthCode);
-    lunarAudit = calcFlowSoulLevelAudit(lunarFlow.path, lunarBirthCode);
+    correctedLunarLv = calcFlowSoulLevelByCode(lunarFlow.code);
+    lunarAudit = calcFlowSoulLevelAudit(lunarFlow.path, lunarFlow.code);
   }
 
   return {
@@ -2302,7 +2305,7 @@ export default function SoulDashboard() {
               <div className="flex flex-wrap justify-between items-end gap-3"><div className="flex items-center"><span className="text-3xl sm:text-4xl font-bold text-white">{formatRawNum(data.solar)}</span><FlowTriangle flowValue={data.solar} mainValue={data.mainSolar} colorClass="cyan" scale={0.75} /></div><span className="text-cyan-300 text-xs font-bold tracking-[0.25em] px-2.5 py-1 bg-cyan-950/30 rounded-full border border-cyan-500/30 whitespace-nowrap">{data.solarKw}</span></div>
               {showFlowAudit && data.flowAuditSolar && (
                 <div className="mt-2 text-[10px] leading-4 text-cyan-200/80 font-mono break-words border border-cyan-900/40 bg-cyan-950/20 rounded p-2">
-                  驗算 flow:{data.flowAuditSolar.flow_path} | birth:{data.flowAuditSolar.birth_code} | total:{data.flowAuditSolar.total} | main:{data.flowAuditSolar.main} | ant:{data.flowAuditSolar.ant1}/{data.flowAuditSolar.ant2} | hits:{data.flowAuditSolar.ant_hits} | mainIn:{data.flowAuditSolar.main_in_birth} | triple:{data.flowAuditSolar.has_triple} | lv:{data.flowAuditSolar.level}
+                  驗算 flow:{data.flowAuditSolar.flow_path} | code:{data.flowAuditSolar.flow_code} | total:{data.flowAuditSolar.total} | main:{data.flowAuditSolar.main} | 後天:{data.flowAuditSolar.consequent_digits} | hits:{data.flowAuditSolar.consequent_hits} | mainIn:{data.flowAuditSolar.main_in_flow_code} | lv:{data.flowAuditSolar.level}
                 </div>
               )}
             </div>
@@ -2370,7 +2373,7 @@ export default function SoulDashboard() {
               <div className="flex flex-wrap justify-between items-end gap-3"><div className="flex items-center"><span className="text-3xl sm:text-4xl font-bold text-white">{formatRawNum(data.lunar)}</span><FlowTriangle flowValue={data.lunar} mainValue={data.mainLunar} colorClass="purple" scale={0.75} /></div><span className="text-purple-300 text-xs font-bold tracking-[0.25em] px-2.5 py-1 bg-purple-950/30 rounded-full border border-purple-500/30 whitespace-nowrap">{data.lunarKw}</span></div>
               {showFlowAudit && data.flowAuditLunar && (
                 <div className="mt-2 text-[10px] leading-4 text-purple-200/80 font-mono break-words border border-purple-900/40 bg-purple-950/20 rounded p-2">
-                  驗算 flow:{data.flowAuditLunar.flow_path} | birth:{data.flowAuditLunar.birth_code} | total:{data.flowAuditLunar.total} | main:{data.flowAuditLunar.main} | ant:{data.flowAuditLunar.ant1}/{data.flowAuditLunar.ant2} | hits:{data.flowAuditLunar.ant_hits} | mainIn:{data.flowAuditLunar.main_in_birth} | triple:{data.flowAuditLunar.has_triple} | lv:{data.flowAuditLunar.level}
+                  驗算 flow:{data.flowAuditLunar.flow_path} | code:{data.flowAuditLunar.flow_code} | total:{data.flowAuditLunar.total} | main:{data.flowAuditLunar.main} | 後天:{data.flowAuditLunar.consequent_digits} | hits:{data.flowAuditLunar.consequent_hits} | mainIn:{data.flowAuditLunar.main_in_flow_code} | lv:{data.flowAuditLunar.level}
                 </div>
               )}
             </div>
